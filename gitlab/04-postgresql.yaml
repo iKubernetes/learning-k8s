@@ -1,0 +1,103 @@
+---
+## PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgsql-data
+  namespace: gitlab
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-csi
+---
+## Service
+kind: Service
+apiVersion: v1
+metadata:
+  name: gitlab-postgresql
+  namespace: gitlab
+  labels:
+    app: gitlab-postgresql
+spec:
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+      targetPort: postgres
+  selector:
+    app: postgresql
+  type: ClusterIP
+---
+## Deployment
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: gitlab-pgsql
+  namespace: gitlab
+  labels:
+    app: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      name: postgresql
+      labels:
+        app: postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: sameersbn/postgresql:12-20200524
+        ports:
+        - name: postgres
+          containerPort: 5432
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: gitlab
+              key: db_user
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: gitlab
+              key: db_pass
+        - name: DB_NAME
+          value: gitlabhq_production
+        - name: DB_EXTENSION
+          value: 'pg_trgm,btree_gist'
+        resources: 
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 2
+            memory: 2Gi
+        livenessProbe:
+          exec:
+            command: ["pg_isready","-h","localhost","-U","postgres"]
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command: ["pg_isready","-h","localhost","-U","postgres"]
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: pgsql-data

@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins 
+  labels:
+    app: jenkins
+spec:
+  selector:
+    app: jenkins
+  type: NodePort
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-jnlp
+  namespace: jenkins 
+  labels:
+    app: jenkins
+spec:
+  selector:
+    app: jenkins
+  ports:
+  - name: agent
+    port: 50000
+    targetPort: 50000

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wordpress
+  name: wordpress
+spec:
+  ports:
+  - name: fpm 
+    port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: wordpress

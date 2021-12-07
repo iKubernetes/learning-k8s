@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+      - name: ngxconf
+        configMap:
+          name: nginx-conf
+      - name: wordpress-app-data
+        persistentVolumeClaim:
+          claimName: wordpress-app-data
+      containers:
+      - image: nginx:1.20-alpine
+        name: nginx
+        volumeMounts:
+        - name: ngxconf
+          mountPath: /etc/nginx/conf.d/
+        - name: wordpress-app-data
+          mountPath: /var/www/html/
