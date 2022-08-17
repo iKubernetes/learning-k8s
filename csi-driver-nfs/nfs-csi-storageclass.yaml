@@ -1,3 +1,4 @@
+---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -7,12 +8,9 @@ parameters:
   #server: nfs-server.default.svc.cluster.local
   server: nfs-server.nfs.svc.cluster.local
   share: /
-  # csi.storage.k8s.io/provisioner-secret is only needed for providing mountOptions in DeleteVolume
-  # csi.storage.k8s.io/provisioner-secret-name: "mount-options"
-  # csi.storage.k8s.io/provisioner-secret-namespace: "default"
 #reclaimPolicy: Delete
 reclaimPolicy: Retain
 volumeBindingMode: Immediate
 mountOptions:
-  - nconnect=8  # only supported on linux kernel version >= 5.3
+  - hard
   - nfsvers=4.1
