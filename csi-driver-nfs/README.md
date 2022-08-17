@@ -64,7 +64,7 @@ mountOptions:
 
  - create PVC
 ```console
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/release-3.0/deploy/example/pvc-nfs-csi-dynamic.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/release-3.1/deploy/example/pvc-nfs-csi-dynamic.yaml
 ```
 
 ## PV/PVC Usage (Static Provisioning)
@@ -115,6 +115,5 @@ spec:
 
 ## Create a deployment
 ```console
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/release-3.0/deploy/example/deployment.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/release-3.1/deploy/example/deployment.yaml
 ```
-
