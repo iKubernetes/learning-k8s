@@ -1,0 +1,28 @@
+node:
+  id: sidecar-proxy
+  cluster: demoapp-cluster
+
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9901 }
+
+dynamic_resources:
+  lds_config:
+    path: '/etc/envoy/lds.conf'
+
+static_resources:
+  clusters:
+  - name: local_service
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: local_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 8080
