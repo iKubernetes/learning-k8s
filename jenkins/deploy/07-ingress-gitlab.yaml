@@ -17,3 +17,13 @@ spec:
               number: 8080 
         path: /
         pathType: Prefix
+  - host: jenkins.magedu.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: jenkins
+            port: 
+              number: 8080 
+        path: /
+        pathType: Prefix
