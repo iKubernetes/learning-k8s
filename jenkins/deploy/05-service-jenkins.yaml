@@ -10,7 +10,6 @@ spec:
   selector:
     app: jenkins
   type: NodePort
-  externalTrafficPolicy: Cluster
   ports:
   - name: http
     port: 8080

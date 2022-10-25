@@ -3,9 +3,8 @@ kind: Ingress
 metadata:
   name: jenkins
   namespace: jenkins
-  annotations:
-    kubernetes.io/ingress.class: nginx
 spec:
+  ingressClassName: nginx
   rules:
   - host: ci.magedu.com
     http:

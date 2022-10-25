@@ -8,8 +8,8 @@ parameters:
   #server: nfs-server.default.svc.cluster.local
   server: nfs-server.nfs.svc.cluster.local
   share: /
-#reclaimPolicy: Delete
-reclaimPolicy: Retain
+reclaimPolicy: Delete
+#reclaimPolicy: Retain
 volumeBindingMode: Immediate
 mountOptions:
   - hard
