@@ -1,0 +1,169 @@
+global:
+  imageRegistry: ""
+  storageClass: "nfs-csi"
+
+clusterDomain: cluster.local
+
+operator:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami/prometheus-operator
+    tag: 0.60.1-debian-11-r9
+prometheus:
+  enabled: true
+  replicaCount: 2
+  image:
+    registry: docker.io
+    repository: bitnami/prometheus
+    tag: 2.39.1-debian-11-r10
+  ingress:
+    enabled: true
+    pathType: Prefix
+    apiVersion: ""
+    hostname: prometheus.magedu.com
+    path: /
+    annotations: {}
+    ingressClassName: "nginx"
+    tls: false
+    selfSigned: false
+  externalUrl: ""
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 8Gi
+    annotations: {}
+  priorityClassName: ""
+  thanos:
+    create: false
+    image:
+      registry: docker.io
+      repository: bitnami/thanos
+      tag: 0.28.1-scratch-r0
+    ingress:
+      enabled: false
+      pathType: Prefix
+      hostname: thanos.magedu.com
+      path: /
+      annotations: {}
+      ingressClassName: "nginx"
+      tls: false
+      selfSigned: false
+
+alertmanager:
+  enabled: true
+  replicaCount: 2
+  image:
+    registry: docker.io
+    repository: bitnami/alertmanager
+    tag: 0.24.0-debian-11-r55
+  ingress:
+    enabled: true
+    pathType: Prefix
+    hostname: alertmanager.magedu.com
+    path: /
+    annotations: {}
+    ingressClassName: "nginx"
+    tls: false
+    selfSigned: false
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 8Gi
+    annotations: {}
+
+exporters:
+  node-exporter:
+    enabled: true
+  kube-state-metrics:
+    enabled: true
+
+node-exporter:
+  service:
+    labels:
+      jobLabel: node-exporter
+  serviceMonitor:
+    enabled: true
+    jobLabel: jobLabel
+  extraArgs:
+    collector.filesystem.ignored-mount-points: "^/(dev|proc|sys|var/lib/docker/.+)($|/)"
+    collector.filesystem.ignored-fs-types: "^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$"
+
+kube-state-metrics:
+  serviceMonitor:
+    enabled: true
+
+kubelet:
+  enabled: true
+  namespace: kube-system
+
+blackboxExporter:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami/blackbox-exporter
+    tag: 0.22.0-debian-11-r32
+  configuration:  |
+    "modules":
+      "http_2xx":
+        "http":
+          "preferred_ip_protocol": "ip4"
+        "prober": "http"
+      "http_post_2xx":
+        "http":
+          "method": "POST"
+          "preferred_ip_protocol": "ip4"
+        "prober": "http"
+      "irc_banner":
+        "prober": "tcp"
+        "tcp":
+          "preferred_ip_protocol": "ip4"
+          "query_response":
+          - "send": "NICK prober"
+          - "send": "USER prober prober prober :prober"
+          - "expect": "PING :([^ ]+)"
+            "send": "PONG ${1}"
+          - "expect": "^:[^ ]+ 001"
+      "pop3s_banner":
+        "prober": "tcp"
+        "tcp":
+          "preferred_ip_protocol": "ip4"
+          "query_response":
+          - "expect": "^+OK"
+          "tls": true
+          "tls_config":
+            "insecure_skip_verify": false
+      "ssh_banner":
+        "prober": "tcp"
+        "tcp":
+          "preferred_ip_protocol": "ip4"
+          "query_response":
+          - "expect": "^SSH-2.0-"
+      "tcp_connect":
+        "prober": "tcp"
+        "tcp":
+          "preferred_ip_protocol": "ip4"
+
+kubeApiServer:
+  enabled: true
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+coreDns:
+  enabled: true
+
+kubeProxy:
+  enabled: false
+
+rbac:
+  create: true
+  pspEnabled: true
+
