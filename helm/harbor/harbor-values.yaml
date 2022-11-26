@@ -18,7 +18,7 @@ ipFamily:
     enabled: false
  
 
-externalURL: https://hub.magedu.om
+externalURL: https://hub.magedu.com
 
 # 持久化存储配置部分
 persistence:
