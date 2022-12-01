@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: ci.magedu.com
+  - host: cicd.magedu.com
     http:
       paths:
       - backend:
