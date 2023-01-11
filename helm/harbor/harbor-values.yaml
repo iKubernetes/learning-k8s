@@ -18,7 +18,7 @@ ipFamily:
     enabled: false
  
 
-externalURL: https://hub.magedu.om
+externalURL: https://hub.magedu.com
 
 # 持久化存储配置部分
 persistence:
@@ -33,15 +33,10 @@ persistence:
       storageClass: "nfs-csi"
       accessMode: ReadWriteMany
       size: 5Gi
-    jobservice:    # 异步任务组件
-      jobLog:
-        storageClass: "nfs-csi"
-        accessMode: ReadWriteMany
-        size: 2Gi
-      scanDataExports:
-        storageClass: "nfs-csi"
-        accessMode: ReadWriteMany
-        size: 2Gi
+    jobservice:
+      storageClass: "nfs-csi"
+      accessMode: ReadWriteMany
+      size: 1Gi
     database:        # PostgreSQl数据库组件
       storageClass: "nfs-csi"
       accessMode: ReadWriteMany
