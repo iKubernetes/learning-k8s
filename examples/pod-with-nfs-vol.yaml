@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-nfs-002
+spec:
+  containers:
+  - name: redis
+    image: redis:6
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - name: redisdata
+      mountPath: /data
+  volumes:
+  - name: redisdata
+    nfs:
+      server: 172.29.7.1
+      path: /data/redis001
+
