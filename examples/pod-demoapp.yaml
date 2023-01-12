@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demoapp-pod
+  namespace: default
+spec:
+  containers:
+  - name: demoapp
+    image: ikubernetes/demoapp:v1.0
