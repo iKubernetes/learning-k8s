@@ -34,9 +34,14 @@ persistence:
       accessMode: ReadWriteMany
       size: 5Gi
     jobservice:
-      storageClass: "nfs-csi"
-      accessMode: ReadWriteMany
-      size: 1Gi
+      jobLog:
+        storageClass: "nfs-csi"
+        accessMode: ReadWriteOnce
+        size: 1Gi
+      scanDataExports:
+        storageClass: "nfs-csi"
+        accessMode: ReadWriteOnce
+        size: 1Gi
     database:        # PostgreSQl数据库组件
       storageClass: "nfs-csi"
       accessMode: ReadWriteMany
