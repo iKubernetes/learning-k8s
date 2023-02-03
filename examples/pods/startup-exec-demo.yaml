@@ -1,0 +1,19 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# URL: http://www.magedu.com
+# ---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: startup-exec-demo
+  namespace: default
+spec:
+  containers:
+  - name: demo
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    startupProbe:
+      exec:
+        command: ['/bin/sh','-c','test','"$(curl -s 127.0.0.1/livez)"=="OK"']
+      initialDelaySeconds: 0
+      failureThreshold: 3
+      periodSeconds: 5

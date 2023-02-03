@@ -1,0 +1,19 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# URL: http://www.magedu.com
+# ---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-httpget-demo
+  namespace: default
+spec:
+  containers:
+  - name: demo
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      httpGet:
+        path: '/livez'
+        port: 80
+        scheme: HTTP
+      initialDelaySeconds: 5

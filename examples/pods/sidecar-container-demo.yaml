@@ -1,0 +1,20 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# URL: http://www.magedu.com
+# ---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-container-demo
+  namespace: default
+spec:
+  containers:
+  - name: proxy
+    image: envoyproxy/envoy-alpine:v1.14.1
+  - name: demo
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    env:
+    - name: HOST
+      value: "127.0.0.1"
+    - name: PORT
+      value: "8080"

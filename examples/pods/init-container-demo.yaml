@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-container-demo
+  namespace: default
+spec:
+  initContainers:
+  - name: iptables-init
+    image: ikubernetes/admin-box:latest
+    imagePullPolicy: IfNotPresent
+    command: ['/bin/sh','-c']
+    args: ['iptables -t nat -A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-port 80']
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+  containers:
+  - name: demo
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    ports:
+    - name: http
+      containerPort: 80

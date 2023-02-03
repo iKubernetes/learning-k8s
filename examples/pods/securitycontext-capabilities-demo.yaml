@@ -1,0 +1,18 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# # URL: http://www.magedu.com
+apiVersion: v1
+kind: Pod
+metadata:
+  name: securitycontext-capabilities-demo
+  namespace: default
+spec:
+  containers:
+  - name: demo
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sh","-c"]
+    args: ["/sbin/iptables -t nat -A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-port 80 && /usr/bin/python3 /usr/local/bin/demo.py"]
+    securityContext:
+      capabilities:
+        add: ['NET_ADMIN']
+        #drop: ['CHOWN']
