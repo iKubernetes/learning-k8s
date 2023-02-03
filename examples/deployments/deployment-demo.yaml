@@ -1,0 +1,35 @@
+# VERSION: demoapp version
+# Maintainer: MageEdu <mage@magedu.com>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-demo
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: demoapp
+      release: stable
+  template:
+    metadata:
+      labels:
+        app: demoapp
+        release: stable
+    spec:
+      containers:
+      - name: demoapp
+        image: ikubernetes/demoapp:v1.0
+        ports:
+        - containerPort: 80
+          name: http
+        livenessProbe:
+          httpGet:
+            path: '/livez'
+            port: 80
+          initialDelaySeconds: 5
+        readinessProbe:
+          httpGet:
+            path: '/readyz'
+            port: 80
+          initialDelaySeconds: 15

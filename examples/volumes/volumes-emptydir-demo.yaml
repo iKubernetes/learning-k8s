@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volumes-emptydir-demo
+  namespace: default
+spec:
+  initContainers:
+  - name: config-file-downloader
+    image: ikubernetes/admin-box
+    imagePullPolicy: IfNotPresent
+    command: ['/bin/sh','-c','wget -O /data/envoy.yaml https://raw.githubusercontent.com/iKubernetes/Kubernetes_Advanced_Practical_2rd/main/chapter4/envoy.yaml']
+    volumeMounts:
+    - name: config-file-store
+      mountPath: /data
+  containers:
+  - name: envoy
+    image: envoyproxy/envoy-alpine:v1.13.1
+    command: ['/bin/sh','-c']
+    args: ['envoy -c /etc/envoy/envoy.yaml']
+    volumeMounts:
+    - name: config-file-store
+      mountPath: /etc/envoy
+      readOnly: true
+  volumes:
+  - name: config-file-store
+    emptyDir:
+      medium: Memory
+      sizeLimit: 16Mi

@@ -1,0 +1,69 @@
+# demodb ,an educational Kubernetes-native NoSQL data store. It is a distributed 
+# key-value store, supporting permanent read and write operations. 
+# Environment Variables: DEMODB_DATADIR, DEMODB_HOST, DEMODB_PORT
+# default port: 9907/tcp for clients, 9999/tcp for members.
+# Maintainter: MageEdu <mage@magedu.com>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demodb
+  namespace: default
+  labels:
+    app: demodb
+spec:
+  clusterIP: None
+  ports:
+  - port: 9907
+  selector:
+    app: demodb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: demodb
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: demodb
+  serviceName: "demodb"
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: demodb
+    spec:
+      containers:
+      - name: demodb-shard
+        image: ikubernetes/demodb:v0.1
+        ports:
+        - containerPort: 9907
+          name: db
+        env:
+        - name: DEMODB_DATADIR
+          value: "/demodb/data"
+        livenessProbe:
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          httpGet:
+            path: /status
+            port: db
+        readinessProbe:
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          httpGet:
+            path: /status?level=full
+            port: db 
+        volumeMounts:
+        - name: data
+          mountPath: /demodb/data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "nfs-csi"
+      resources:
+        requests:
+          storage: 2Gi

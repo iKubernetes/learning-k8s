@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: daemonset-demo
+  namespace: default
+  labels:
+    app: prometheus
+    component: node-exporter
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+      component: node-exporter
+  template:
+    metadata:
+      name: prometheus-node-exporter
+      labels:
+        app: prometheus
+        component: node-exporter
+    spec:
+      containers:
+      - image: prom/node-exporter:v1.5.0
+        name: prometheus-node-exporter
+        ports:
+        - name: prom-node-exp
+          containerPort: 9100
+          hostPort: 9100
+        livenessProbe:
+          tcpSocket:
+            port: prom-node-exp
+          initialDelaySeconds: 3
+        readinessProbe:
+          httpGet:
+            path: '/metrics'
+            port: prom-node-exp
+            scheme: HTTP
+          initialDelaySeconds: 5
+      hostNetwork: true
+      hostPID: true

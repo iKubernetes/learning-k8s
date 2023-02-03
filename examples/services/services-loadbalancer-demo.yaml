@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp-loadbalancer-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: demoapp
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  loadBalancerIP: 1.2.3.4

@@ -1,0 +1,15 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# URL: http://www.magedu.com
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp-headless-svc
+spec:
+  clusterIP: None
+  selector:
+    app: demoapp
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http

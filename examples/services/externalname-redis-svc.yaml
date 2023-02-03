@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: externalname-redis-svc
+  namespace: default
+spec:
+  type: ExternalName
+  externalName: redis.ik8s.io
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+    nodePort: 0
+  selector: {}

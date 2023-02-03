@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volumes-hostpath-demo
+spec:
+  containers:
+  - name: filebeat
+    image: ikubernetes/filebeat:5.6.7-alpine
+    env:
+    - name: REDIS_HOST
+      value: redis.ilinux.io:6379
+    - name: LOG_LEVEL
+      value: info
+    volumeMounts:
+    - name: varlog
+      mountPath: /var/log
+    - name: socket
+      mountPath: /var/run/docker.sock
+    - name: varlibdockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+  volumes:
+  - name: varlog
+    hostPath:
+      path: /var/log
+  - name: varlibdockercontainers
+    hostPath:
+      path: /var/lib/docker/containers
+  - name: socket
+    hostPath:
+      path: /var/run/docker.sock

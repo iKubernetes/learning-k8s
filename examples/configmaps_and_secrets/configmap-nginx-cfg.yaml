@@ -1,0 +1,22 @@
+apiVersion: v1
+data:
+  gzip.cfg: |
+    gzip on;
+    gzip_comp_level 5;
+    gzip_proxied     expired no-cache no-store private auth;
+    gzip_types text/plain text/css application/xml text/javascript;
+  myserver.conf: |
+    server {
+        listen 8080;
+        server_name www.ik8s.io;
+
+        include /etc/nginx/conf.d/myserver-*.cfg;
+
+        location / {
+            root /usr/share/nginx/html;
+        }
+    }
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: nginx-cfg

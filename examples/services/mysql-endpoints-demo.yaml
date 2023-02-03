@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: mysql-external
+  namespace: default
+subsets:
+- addresses:
+  - ip: 172.29.9.51
+  - ip: 172.29.9.52
+  ports:
+  - name: mysql
+    port: 3306
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-external
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - name: mysql
+    port: 3306
+    targetPort: 3306
+    protocol: TCP

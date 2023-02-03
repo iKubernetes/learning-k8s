@@ -1,0 +1,28 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjob-demo
+  namespace: default
+spec:
+  schedule: "*/2 * * * *"
+  jobTemplate:
+    metadata:
+      labels:
+        controller: cronjob-demo
+    spec:
+      parallelism: 1
+      completions: 1
+      ttlSecondsAfterFinished: 600
+      backoffLimit: 3
+      activeDeadlineSeconds: 60
+      template:
+        spec:
+          containers:
+          - name: myjob
+            image: ikubernetes/admin-box:v1.2
+            command:
+            - /bin/sh
+            - -c
+            - date; echo Hello from CronJob, sleep a while...; sleep 10
+          restartPolicy: OnFailure
+  startingDeadlineSeconds: 300

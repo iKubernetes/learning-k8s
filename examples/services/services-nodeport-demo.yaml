@@ -1,0 +1,19 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# URL: http://www.magedu.com
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp-nodeport-svc
+spec:
+  type: NodePort
+  clusterIP: 10.97.56.1
+  selector:
+    app: demoapp
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 31398
+  # externalTrafficPolicy: Local
