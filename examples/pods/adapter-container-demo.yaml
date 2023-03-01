@@ -1,0 +1,54 @@
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  default.conf: |
+    server {
+      listen       80;
+      server_name  localhost;
+      location / {
+          root   /usr/share/nginx/html;
+          index  index.html index.htm;
+      }
+      error_page   500 502 503 504  /50x.html;
+      location = /50x.html {
+          root   /usr/share/nginx/html;
+      }
+      location /nginx_status {
+        stub_status;
+        allow 127.0.0.1; 
+        deny all;   
+      }
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: adapter-container-demo
+spec:
+  containers:
+  - name: nginx
+    image: nginx:alpine
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - mountPath: /etc/nginx/conf.d/
+      name: nginx-conf
+      readOnly: true
+  - name: adapter
+    image: nginx/nginx-prometheus-exporter:latest
+    args: ["-nginx.scrape-uri","http://localhost/nginx_status"]
+    ports:      
+    # nginx-prometheus-exporter默认监听tcp/9113端口
+    - name: exporter
+      containerPort: 9113   
+  volumes:
+  - name: nginx-conf
+    configMap:
+      name: nginx-conf
+      items:
+      - key: default.conf
+        path: default.conf

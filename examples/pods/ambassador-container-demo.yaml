@@ -1,0 +1,20 @@
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ambassador-container-demo
+spec:
+  containers:
+  - name: curl
+    image: ikubernetes/admin-box:v1.2
+    command: ["sleep", "999999"]
+  - name: ambassador
+    image: bitnami/kubectl:latest
+    command: ["/bin/sh","-c","kubectl proxy"]
+    args:    
+    # 传递给 kubectl proxy 的选项，若需要改变默认监听的tcp/8001端口，可以额外附加“--port=NUM”选项；
+    - --server="https://kubernetes.default.svc"
+    - --certificate-authority="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    - --token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+    - --accept-paths='^.\*'
