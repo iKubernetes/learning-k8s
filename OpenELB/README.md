@@ -35,7 +35,7 @@ openelb-keepalive-vip-vsgkx       1/1     Running     0          4m
 openelb-manager-d6df4dfc4-2q4cm   1/1     Running     0          5m
 ```
 
-### 配置示例：ARP模式
+### 配置示例：layer2模式
 
 下面的示例创建了一个Eip资源对象，它提供了一个地址池给LoadBalancer Service使用。
 
