@@ -56,7 +56,7 @@ spec:
 创建完成后，可使用如命令验证。
 
 ```bash
-
+kubectl get eip eip-pool -o yaml
 ```
 
 输出结果应该类似如下所示。
