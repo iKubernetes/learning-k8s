@@ -46,10 +46,14 @@ metadata:
     name: eip-pool
     annotations:
       eip.openelb.kubesphere.io/is-default-eip: "true"
+      # 指定当前Eip作为向LoadBalancer Server分配地址时使用默认的eip对象；
 spec:
     address: 172.29.5.51-172.29.5.60
+    # 地址范围，也可以使用单个IP，或者带有掩码长度的网络地址；
     protocol: layer2
+    # 要使用的OpenELB模式，支持bgp、layer2和vip三种，默认为bgp；
     interface: enp1s0
+    # OpenELB侦听ARP或NDP请求时使用的网络接口名称，仅layer2模式下有效；
     disable: false
 ```
 
