@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-demo
+spec:
+  accessModes: ["ReadWriteMany"]
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 3Gi
+    limits:
+      storage: 10Gi
