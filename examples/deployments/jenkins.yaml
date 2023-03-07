@@ -1,0 +1,88 @@
+# Maintainer: MageEdu <mage@magedu.com>
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jenkins
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pvc
+  namespace: jenkins
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-csi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      volumes:
+      - name: jenkins-store
+        persistentVolumeClaim:
+          claimName: jenkins-pvc
+      containers:
+      - name: jenkins
+        image: jenkins/jenkins:jdk11
+        #image: jenkins/jenkins:lts-jdk11
+        volumeMounts:
+        - name: jenkins-store
+          mountPath: /var/jenkins_home/
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: JAVA_OPTS
+          value: -XshowSettings:vm -Dhudson.slaves.NodeProvisioner.initialDelay=0 -Dhudson.slaves.NodeProvisioner.MARGIN=50 -Dhudson.slaves.NodeProvisioner.MARGIN0=0.85 -Duser.timezone=Asia/Shanghai -Djenkins.install.runSetupWizard=true
+        ports:
+        - containerPort: 8080
+          name: web
+          protocol: TCP
+        - containerPort: 50000
+          name: agent
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins 
+  labels:
+    app: jenkins
+spec:
+  selector:
+    app: jenkins
+  type: NodePort
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-jnlp
+  namespace: jenkins 
+  labels:
+    app: jenkins
+spec:
+  selector:
+    app: jenkins
+  ports:
+  - name: agent
+    port: 50000
+    targetPort: 50000
