@@ -10,7 +10,8 @@ spec:
     imagePullPolicy: IfNotPresent
     livenessProbe:
       exec:
-        command: ['/bin/sh', '-c', '[ "$(curl -s 127.0.0.1/livez)" == "OK" ]']
+        #command: ['/bin/sh', '-c', '[ "$(curl -s 127.0.0.1/livez)" == "OK" ]']
+        command: ['/bin/sh', '-c', '[ "$(/usr/bin/curl -s http://127.0.0.1/livez)" == "OK" ]']
       initialDelaySeconds: 5
       timeoutSeconds: 1
       periodSeconds: 5
