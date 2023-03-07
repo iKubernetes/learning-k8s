@@ -20,20 +20,15 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs
 
 支持两种部署方式：远程部署和本地部署，前者是指直接从远程仓库中获取部署配置文件完成的部署，而后者则需要首先克隆csi-driver-nfs项目的仓库至本地，并在克隆而来的本地项目目录中进行部署。
 
-目前，NFS CSI Driver项目维护有多个不同的版本，部署前需要首先确定要选择使用的版本。需要特别说明的是，4.0及4.1的版本上，在csi-nfs-controller和csi-nfs-node相关的Pod的配置中的dnsPolicy都使用了“Default”，但又使用了spec.hostNetwork配置，这种配置中，此两者相关的Pod将无法使用ClusterDNS解析集群上的服务。因此，为了能够同此前的部署NFS Server协同，我们需要事先修改dnsPolicy的值为“ClusterFirstWithHostNet”。
+目前，NFS CSI Driver项目维护有多个不同的版本，部署前需要首先确定要选择使用的版本。需要特别说明的是，4.0及以上版本中，在csi-nfs-controller和csi-nfs-node相关的Pod的配置中的dnsPolicy都使用了“Default”，但又使用了spec.hostNetwork配置，这种配置中，此两者相关的Pod将无法使用ClusterDNS解析集群上的服务。因此，为了能够同此前的部署NFS Server协同，我们需要事先修改dnsPolicy的值为“ClusterFirstWithHostNet”。
 
-为了方便大家的使用，本仓库中直接基于4.1.0版本生成了一个将dnsPolicy的值为“ClusterFirstWithHostNet”的配置示例，相关的文件在[deploy](https://github.com/iKubernetes/learning-k8s/tree/master/csi-driver-nfs/deploy)/[02-csi-driver-nfs-4.1](https://github.com/iKubernetes/learning-k8s/tree/master/csi-driver-nfs/deploy/02-csi-driver-nfs-4.1)目录下。本示例将直接基于这些文件完成NFS CSI Driver的部署。
-
- - remote install（基于官方仓库的部署，其默认配置没有修改dnsPolicy）
-```console
-curl -skSL https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/v4.1.0/deploy/install-driver.sh | bash -s v4.1.0 --
-```
+为了方便大家的使用，本仓库中直接基于v4.1.0和v4.2.0版本分别生成了一个将dnsPolicy的值为“ClusterFirstWithHostNet”的配置示例。以v4.2.0为例，相关的文件在[deploy](https://github.com/iKubernetes/learning-k8s/tree/master/csi-driver-nfs/deploy)/[03-csi-driver-nfs-4.2](https://github.com/iKubernetes/learning-k8s/tree/master/csi-driver-nfs/deploy/03-csi-driver-nfs-4.2)目录下。本示例将直接基于这些文件完成NFS CSI Driver的部署。
 
  - local install（基于当前项目的部署，其默认配置已经修改dnsPolicy）
 ```console
 git clone https://github.com/iKubernetes/learning-k8s.git
 cd learning-k8s
-kubectl apply -f csi-driver-nfs/deploy/02-csi-driver-nfs-4.1/
+kubectl apply -f csi-driver-nfs/deploy/03-csi-driver-nfs-4.2/
 ```
 
 - check pods status:
