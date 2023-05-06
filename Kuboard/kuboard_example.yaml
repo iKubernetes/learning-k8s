@@ -66,7 +66,7 @@ spec:
       nodePort: 0
 
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   namespace: example
@@ -79,14 +79,15 @@ metadata:
     k8s.eip.work/name: cloud-eureka
 spec:
   rules:
-    - host: cloud-eureka.example.demo.kuboard.cn
+    - host: cloud-eureka.magedu.com
       http:
         paths:
           - path: /
             backend:
-              serviceName: cloud-eureka
-              servicePort: mtfsyi
-
+              service:
+                name: cloud-eureka
+                port:
+                  number: myfsyi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -337,7 +338,7 @@ spec:
       nodePort: 0
 
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   namespace: example
@@ -350,11 +351,12 @@ metadata:
     k8s.eip.work/name: web-example
 spec:
   rules:
-    - host: web-example.example.demo.kuboard.cn
+    - host: web-example.magedu.com
       http:
         paths:
           - path: /
             backend:
-              serviceName: web-example
-              servicePort: mawfrp
-
+              service:
+                name: web-example
+                port:
+                  number: mawfrp
