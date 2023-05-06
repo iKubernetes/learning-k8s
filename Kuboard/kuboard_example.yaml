@@ -83,11 +83,12 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
               service:
                 name: cloud-eureka
                 port:
-                  number: myfsyi
+                  number: 9200
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -355,8 +356,9 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
               service:
                 name: web-example
                 port:
-                  number: mawfrp
+                  number: 80
