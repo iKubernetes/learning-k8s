@@ -78,6 +78,7 @@ metadata:
     k8s.eip.work/layer: cloud
     k8s.eip.work/name: cloud-eureka
 spec:
+  ingessClassName: 'nginx'
   rules:
     - host: cloud-eureka.magedu.com
       http:
@@ -351,6 +352,7 @@ metadata:
     k8s.eip.work/layer: web
     k8s.eip.work/name: web-example
 spec:
+  ingessClassName: 'nginx'
   rules:
     - host: web-example.magedu.com
       http:
