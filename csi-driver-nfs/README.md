@@ -58,6 +58,8 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: nfs-csi
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
 provisioner: nfs.csi.k8s.io
 parameters:
   #server: nfs-server.default.svc.cluster.local
@@ -70,7 +72,16 @@ mountOptions:
   - nfsvers=4.1
 ```
 
+若需要在创建完StorageClass后将其设置为默认，可使用类似如下命令进行。
+
+```bash
+kubectl patch storageclass nfs-csi -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
+
+取消某StorageClass的默认设定，则将类似上面命令中的annotation的值修改为false即可。
+
  - 创建一个PVC进行测试
+
 ```console
 kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/pvc-nfs-csi-dynamic.yaml
 ```

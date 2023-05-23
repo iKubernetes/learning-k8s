@@ -1,0 +1,54 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana
+  namespace: elastic-system
+spec:
+  version: 8.7.1
+  count: 1
+  elasticsearchRef:
+    name: "myes"
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  #http:
+  #  service:
+  #    spec:
+  #      type: LoadBalancer
+  # this shows how to customize the Kibana pod
+  # with labels and resource limits
+  podTemplate:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: 1
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana
+  namespace: elastic-system
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: kibana.magedu.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: kibana-kb-http
+            port:
+              number: 5601
+        path: /
+        pathType: Prefix
+  # tls:
+  # - hosts:
+  #   - host-name
+  #   secretName: tls-secret-name
