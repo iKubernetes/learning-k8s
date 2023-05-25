@@ -1,5 +1,5 @@
 
-# eck-operator
+# ECK-Operator
 
 eck-operator是Elastic官方维护的Elastic Stack相关各组件的Operator。
 
@@ -37,7 +37,10 @@ spec:
 
 访问ElasticSearch，要通过其名字中以集群名称为前缀（例如myes），以“-es-http”后缀的Service进行，例如下面命令结果中的servcies/myes-es-http。
 
-\~$ kubectl get svc -n elastic-system
+```
+~$ kubectl get svc -n elastic-system
+```
+
 NAME                       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
 elastic-operator-webhook   ClusterIP   10.101.161.55    <none>        443/TCP    23m
 myes-es-default            ClusterIP   None             <none>        9200/TCP   14m
@@ -48,14 +51,21 @@ myes-es-transport          ClusterIP   None             <none>        9300/TCP  
 
 我们还要事先获取到访问ElasticSearch的密码，该密码由部署过程自动生成，并保存在了相关名称空间下的Secrets中，该Secrets对象以集群名称为前缀，以“-es-elastic-user”为后缀。下面的命令将获取到的密码保存在名为PASSWORD的变量中。
 
-\~$ PASSWORD=$(kubectl get secret myes-es-elastic-user -n elastic-system -o go-template='{{.data.elastic | base64decode}}')
+```
+~$ PASSWORD=$(kubectl get secret myes-es-elastic-user -n elastic-system -o go-template='{{.data.elastic | base64decode}}')
+```
 
 
 随后，我们即可在集群上通过类似如下命令访问部署好的ElasticSearch集群。
 
-\~$ kubectl run client-$RANDOM --image ikubernetes/admin-box:v1.2 -it --rm --restart=Never --command -- /bin/bash
+```
+~$ kubectl run client-$RANDOM --image ikubernetes/admin-box:v1.2 -it --rm --restart=Never --command -- /bin/bash
+```
 
-\~# curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200
+```
+~# curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200
+```
+
 {
   "name" : "myes-es-default-1",
   "cluster_name" : "myes",
@@ -77,127 +87,20 @@ myes-es-transport          ClusterIP   None             <none>        9300/TCP  
 
 ## 部署Filebeat
 
-下面的配置清单定义了一个Beats资源，它以DaemonSet控制器在每个节点上运行一个filebeat实例，收集日志并保存至ElasticSeach集群中。应用的版本同样为8.7.1。
+Filebeat相关的[配置文件](./beats-filebeat.yaml)定义了一个Beats资源，它以DaemonSet控制器在每个节点上运行一个filebeat实例，收集日志并保存至ElasticSeach集群中。应用的版本同样为8.7.1。运行如下命令即可将其部署到集群上的elastic-system名称空间下。
 
-```yaml
-apiVersion: beat.k8s.elastic.co/v1beta1
-kind: Beat
-metadata:
-  name: filebeat
-  namespace: elastic-system
-spec:
-  type: filebeat
-  version: 8.7.1
-  elasticsearchRef:
-    name: "myes"
-  kibanaRef:
-    name: "kibana"
-  config:
-    filebeat:
-      autodiscover:
-        providers:
-        - type: kubernetes
-          node: ${NODE_NAME}
-          hints:
-            enabled: true
-            default_config:
-              type: container
-              paths:
-              - /var/log/containers/*${data.kubernetes.container.id}.log
-        processors:
-        - add_kubernetes_metadata:
-            host: ${NODE_NAME}
-            matchers:
-            - logs_path:
-                logs_path: "/var/log/containers/"
-        - drop_event.when:
-            or:
-            - equals:
-                kubernetes.namespace: "kube-system"
-            - equals:
-                kubernetes.namespace: "monitoring"  
-            - equals:
-                kubernetes.namespace: "ingress-nginx"
-            - equals:
-                kubernetes.namespace: "kube-node-lease"
-            - equals:
-                kubernetes.namespace: "elastic-system"
-  daemonSet:
-    podTemplate:
-      spec:
-        serviceAccountName: filebeat
-        automountServiceAccountToken: true
-        terminationGracePeriodSeconds: 30
-        dnsPolicy: ClusterFirstWithHostNet
-        hostNetwork: true # Allows to provide richer host metadata
-        containers:
-        - name: filebeat
-          securityContext:
-            runAsUser: 0
-            # If using Red Hat OpenShift uncomment this:
-            #privileged: true
-          volumeMounts:
-          - name: varlogcontainers
-            mountPath: /var/log/containers
-          - name: varlogpods
-            mountPath: /var/log/pods
-          - name: varlibdockercontainers
-            mountPath: /var/lib/docker/containers
-          env:
-            - name: NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-        volumes:
-        - name: varlogcontainers
-          hostPath:
-            path: /var/log/containers
-        - name: varlogpods
-          hostPath:
-            path: /var/log/pods
-        - name: varlibdockercontainers
-          hostPath:
-            path: /var/lib/docker/containers
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: filebeat
-rules:
-- apiGroups: [""] # "" indicates the core API group
-  resources:
-  - namespaces
-  - pods
-  - nodes
-  verbs:
-  - get
-  - watch
-  - list
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: filebeat
-  namespace: elastic-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: filebeat
-subjects:
-- kind: ServiceAccount
-  name: filebeat
-  namespace: elastic-system
-roleRef:
-  kind: ClusterRole
-  name: filebeat
-  apiGroup: rbac.authorization.k8s.io
----
+```
+~# kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/eck-operator/beats-filebeat.yaml
 ```
 
 待所有Pod就绪、收集日志并发往ElasticSearch之后，在ElasticSearch上即能生成相关的索引。
 
-\~# curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200/_cat/indices
+```
+~# curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200/_cat/indices
+```
+
+下面是命令显示的结果，其中的名称形如“.ds-filebeat-8.7.1-2023.05.23-000001”的索引存储的即为filebeat收集的日志信息。
+
 green open .fleet-files-agent-000001            6PfhLWE-Rvu8sheE7-nFqw 1 1     0 0   450b   225b
 green open .ds-filebeat-8.7.1-2023.05.23-000001 kLZmXupSRqmJUKzlp8ETCQ 1 1 22549 0 24.4mb 12.3mb
 green open .fleet-file-data-agent-000001        oxPnPWV2T6K5Jpq6IFNFFw 1 1     0 0   450b   225b
@@ -205,68 +108,16 @@ green open .fleet-file-data-agent-000001        oxPnPWV2T6K5Jpq6IFNFFw 1 1     0
 
 ## 部署Kibana
 
-下面的配置清单定义了一个Kibana资源，它会创建一个Kibana实例，并关联至前面创建的ElasticSeach集群myes中。应用的版本同样为8.7.1。
+本示例中的Kinaba相关的[配置文件](./kibana-myes.yaml)定义了一个Kibana资源，它会创建一个Kibana实例，并关联至前面创建的ElasticSeach集群myes中。Kibana的版本同样为8.7.1。运行如下命令即可完成资源创建。
 
-
-```yaml
-apiVersion: kibana.k8s.elastic.co/v1
-kind: Kibana
-metadata:
-  name: kibana
-  namespace: elastic-system
-spec:
-  version: 8.7.1
-  count: 1
-  elasticsearchRef:
-    name: "myes"
-  http:
-    tls:
-      selfSignedCertificate:
-        disabled: true
-  #http:
-  #  service:
-  #    spec:
-  #      type: LoadBalancer
-  # this shows how to customize the Kibana pod
-  # with labels and resource limits
-  podTemplate:
-    metadata:
-      labels:
-        app: kibana
-    spec:
-      containers:
-      - name: kibana
-        resources:
-          limits:
-            memory: 1Gi
-            cpu: 1
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: kibana
-  namespace: elastic-system
-spec:
-  ingressClassName: nginx
-  rules:
-  - host: kibana.magedu.com
-    http:
-      paths:
-      - backend:
-          service:
-            name: kibana-kb-http
-            port:
-              number: 5601
-        path: /
-        pathType: Prefix
-  # tls:
-  # - hosts:
-  #   - host-name
-  #   secretName: tls-secret-name
+```
+~$ kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/eck-operator/kibana-myes.yaml
 ```
 
 待相关的Pod就绪后，使用ElasticSearch部署时生成的用户elastic及其密码即可登录。密码获取命令如下。
 
-\~$ PASSWORD=$(kubectl get secret myes-es-elastic-user -n elastic-system -o go-template='{{.data.elastic | base64decode}}')
+```
+~$ PASSWORD=$(kubectl get secret myes-es-elastic-user -n elastic-system -o go-template='{{.data.elastic | base64decode}}')
+```
 
-
+![kibana](images/kibana.png)
