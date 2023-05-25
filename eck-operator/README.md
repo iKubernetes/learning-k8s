@@ -42,11 +42,11 @@ spec:
 ```
 
 NAME                       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
-elastic-operator-webhook   ClusterIP   10.101.161.55    <none>        443/TCP    23m
-myes-es-default            ClusterIP   None             <none>        9200/TCP   14m
-myes-es-http               ClusterIP   10.110.174.153   <none>        9200/TCP   14m
-myes-es-internal-http      ClusterIP   10.106.192.197   <none>        9200/TCP   14m
-myes-es-transport          ClusterIP   None             <none>        9300/TCP   14m
+elastic-operator-webhook   ClusterIP   10.101.161.55    <none>        443/TCP    23m 
+myes-es-default            ClusterIP   None             <none>        9200/TCP   14m 
+myes-es-http               ClusterIP   10.110.174.153   <none>        9200/TCP   14m 
+myes-es-internal-http      ClusterIP   10.106.192.197   <none>        9200/TCP   14m 
+myes-es-transport          ClusterIP   None             <none>        9300/TCP   14m 
 
 
 我们还要事先获取到访问ElasticSearch的密码，该密码由部署过程自动生成，并保存在了相关名称空间下的Secrets中，该Secrets对象以集群名称为前缀，以“-es-elastic-user”为后缀。下面的命令将获取到的密码保存在名为PASSWORD的变量中。
@@ -66,23 +66,23 @@ myes-es-transport          ClusterIP   None             <none>        9300/TCP  
 ~# curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200
 ```
 
-{
-  "name" : "myes-es-default-1",
-  "cluster_name" : "myes",
-  "cluster_uuid" : "Dv-m6dyNSumIebUkQV6u4g",
-  "version" : {
-    "number" : "8.7.1",
-    "build_flavor" : "default",
-    "build_type" : "docker",
-    "build_hash" : "f229ed3f893a515d590d0f39b05f68913e2d9b53",
-    "build_date" : "2023-04-27T04:33:42.127815583Z",
-    "build_snapshot" : false,
-    "lucene_version" : "9.5.0",
-    "minimum_wire_compatibility_version" : "7.17.0",
-    "minimum_index_compatibility_version" : "7.0.0"
-  },
-  "tagline" : "You Know, for Search"
-}
+{ 
+  "name" : "myes-es-default-1", 
+  "cluster_name" : "myes", 
+  "cluster_uuid" : "Dv-m6dyNSumIebUkQV6u4g", 
+  "version" : { 
+    "number" : "8.7.1", 
+    "build_flavor" : "default", 
+    "build_type" : "docker", 
+    "build_hash" : "f229ed3f893a515d590d0f39b05f68913e2d9b53", 
+    "build_date" : "2023-04-27T04:33:42.127815583Z", 
+    "build_snapshot" : false, 
+    "lucene_version" : "9.5.0", 
+    "minimum_wire_compatibility_version" : "7.17.0", 
+    "minimum_index_compatibility_version" : "7.0.0" 
+  }, 
+  "tagline" : "You Know, for Search" 
+} 
 
 
 ## 部署Filebeat
@@ -101,9 +101,9 @@ Filebeat相关的[配置文件](./beats-filebeat.yaml)定义了一个Beats资源
 
 下面是命令显示的结果，其中的名称形如“.ds-filebeat-8.7.1-2023.05.23-000001”的索引存储的即为filebeat收集的日志信息。
 
-green open .fleet-files-agent-000001            6PfhLWE-Rvu8sheE7-nFqw 1 1     0 0   450b   225b
-green open .ds-filebeat-8.7.1-2023.05.23-000001 kLZmXupSRqmJUKzlp8ETCQ 1 1 22549 0 24.4mb 12.3mb
-green open .fleet-file-data-agent-000001        oxPnPWV2T6K5Jpq6IFNFFw 1 1     0 0   450b   225b
+green open .fleet-files-agent-000001            6PfhLWE-Rvu8sheE7-nFqw 1 1     0 0   450b   225b 
+green open .ds-filebeat-8.7.1-2023.05.23-000001 kLZmXupSRqmJUKzlp8ETCQ 1 1 22549 0 24.4mb 12.3mb 
+green open .fleet-file-data-agent-000001        oxPnPWV2T6K5Jpq6IFNFFw 1 1     0 0   450b   225b 
 
 
 ## 部署Kibana
