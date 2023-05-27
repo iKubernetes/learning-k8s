@@ -5,7 +5,7 @@ expose:
     certSource: auto
   ingress:
     hosts:
-      core: hub.magedu.com
+      core: registry.magedu.com
       notary: notary.magedu.com
     controller: default
     annotations: 
@@ -18,7 +18,7 @@ ipFamily:
     enabled: false
  
 
-externalURL: https://hub.magedu.com
+externalURL: https://registry.magedu.com
 
 # 持久化存储配置部分
 persistence:
