@@ -78,7 +78,7 @@ metadata:
     k8s.eip.work/layer: cloud
     k8s.eip.work/name: cloud-eureka
 spec:
-  ingessClassName: 'nginx'
+  ingressClassName: 'nginx'
   rules:
     - host: cloud-eureka.magedu.com
       http:
@@ -90,7 +90,22 @@ spec:
                 name: cloud-eureka
                 port:
                   number: 9200
+
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-example-storage
+  namespace: example
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-csi
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -115,8 +130,6 @@ spec:
         k8s.eip.work/layer: db
         k8s.eip.work/name: db-example
     spec:
-      imagePullSecrets:
-        - {}
       initContainers: []
       containers:
         - image: 'eipsample/example-db-example:v1.0.0-alpha.1'
@@ -352,7 +365,7 @@ metadata:
     k8s.eip.work/layer: web
     k8s.eip.work/name: web-example
 spec:
-  ingessClassName: 'nginx'
+  ingressClassName: 'nginx'
   rules:
     - host: web-example.magedu.com
       http:
