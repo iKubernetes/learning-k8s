@@ -52,5 +52,25 @@ spec:
         pathType: Prefix
 ```
 
+将上面的配置保存于配置文件中，例如kuboard-ingress.yaml，即可运行如下命令创建Ingress资源至Kubernetes集群上。
 
+```bash
+kubectl apply -f kuboard-ingress.yaml
+```
+
+了解相关的Ingress资源的简要信息，并确保将kuboard.magedu.com域名解析至相关的IP地址上，即可通过浏览器发起访问。Kuboard默认的管理员用户为“admin/Kuboard123”。
+
+## 部署示例应用
+
+首先创建example名称空间。
+
+```bash
+kubectl create namespace example
+```
+
+而后，将示例应用配置文件中定义的资源对象创建到Kubernetes集群上即可。
+
+```bash
+kubectl apply -f kuboard_example.yaml
+```
 
