@@ -38,7 +38,7 @@ spec:
 访问ElasticSearch，要通过其名字中以集群名称为前缀（例如myes），以“-es-http”后缀的Service进行，例如下面命令结果中的servcies/myes-es-http。
 
 ```
-~$ kubectl get svc -n elastic-system
+kubectl get svc -n elastic-system
 ```
 
 ```
@@ -53,18 +53,18 @@ myes-es-transport          ClusterIP   None             <none>        9300/TCP  
 我们还要事先获取到访问ElasticSearch的密码，该密码由部署过程自动生成，并保存在了相关名称空间下的Secrets中，该Secrets对象以集群名称为前缀，以“-es-elastic-user”为后缀。下面的命令将获取到的密码保存在名为PASSWORD的变量中。
 
 ```
-~$ PASSWORD=$(kubectl get secret myes-es-elastic-user -n elastic-system -o go-template='{{.data.elastic | base64decode}}')
+PASSWORD=$(kubectl get secret myes-es-elastic-user -n elastic-system -o go-template='{{.data.elastic | base64decode}}')
 ```
 
 
 随后，我们即可在集群上通过类似如下命令访问部署好的ElasticSearch集群。
 
 ```
-~$ kubectl run client-$RANDOM --image ikubernetes/admin-box:v1.2 -it --rm --restart=Never --command -- /bin/bash
+kubectl run client-$RANDOM --image ikubernetes/admin-box:v1.2 -it --rm --restart=Never --command -- /bin/bash
 ```
 
 ```
-~# curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200
+curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200
 ```
 获取到的ElasticSearch的Banner信息如下。
 ```
@@ -92,13 +92,13 @@ myes-es-transport          ClusterIP   None             <none>        9300/TCP  
 Filebeat相关的[配置文件](./beats-filebeat.yaml)定义了一个Beats资源，它以DaemonSet控制器在每个节点上运行一个filebeat实例，收集日志并保存至ElasticSeach集群中。应用的版本同样为8.7.1。运行如下命令即可将其部署到集群上的elastic-system名称空间下。
 
 ```
-~# kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/eck-operator/beats-filebeat.yaml
+kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/eck-operator/beats-filebeat.yaml
 ```
 
 待所有Pod就绪、收集日志并发往ElasticSearch之后，在ElasticSearch上即能生成相关的索引。
 
 ```
-~# curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200/_cat/indices
+curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200/_cat/indices
 ```
 
 下面是命令显示的结果，其中的名称形如“.ds-filebeat-8.7.1-2023.05.23-000001”的索引存储的即为filebeat收集的日志信息。
@@ -114,13 +114,15 @@ green open .fleet-file-data-agent-000001        oxPnPWV2T6K5Jpq6IFNFFw 1 1     0
 本示例中的Kinaba相关的[配置文件](./kibana-myes.yaml)定义了一个Kibana资源，它会创建一个Kibana实例，并关联至前面创建的ElasticSeach集群myes中。Kibana的版本同样为8.7.1。运行如下命令即可完成资源创建。
 
 ```
-~$ kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/eck-operator/kibana-myes.yaml
+kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/eck-operator/kibana-myes.yaml
 ```
 
 待相关的Pod就绪后，使用ElasticSearch部署时生成的用户elastic及其密码即可登录。密码获取命令如下。
 
 ```
-~$ PASSWORD=$(kubectl get secret myes-es-elastic-user -n elastic-system -o go-template='{{.data.elastic | base64decode}}')
+PASSWORD=$(kubectl get secret myes-es-elastic-user -n elastic-system -o go-template='{{.data.elastic | base64decode}}')
 ```
+
+Kibana会自动加载由filebeat生成的index pattern，因此，直接进行Discovery页面即可按需检索数据，如下图所示。
 
 ![kibana](images/kibana.png)
