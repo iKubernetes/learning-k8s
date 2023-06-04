@@ -55,7 +55,7 @@ spec:
     spec:
       containers:
       - name: gitlab
-        image: sameersbn/gitlab:15.4.0
+        image: sameersbn/gitlab:15.6.8
         env:
         - name: TZ
           value: Asia/Shanghai
