@@ -21,7 +21,7 @@ spec:
           claimName: jenkins-pvc
       containers:
       - name: jenkins
-        image: jenkins/jenkins:jdk11
+        image: jenkins/jenkins:jdk17
         #image: jenkins/jenkins:lts-jdk11
         volumeMounts:
         - name: jenkins-store
