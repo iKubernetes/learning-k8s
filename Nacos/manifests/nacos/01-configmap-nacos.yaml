@@ -1,0 +1,14 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# Site: http://www.magedu.com
+# Nacos Cluster
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nacos
+  namespace: mall
+data:
+  #mysql.host: "mysql-0.mysql.mall.svc.cluster.local"
+  mysql.host: "mysql-0.mysql"
+  # mysql master host
+  mysql.port: "3306"

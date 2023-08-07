@@ -1,5 +1,16 @@
-# 请阅读Wiki文章
-# https://github.com/nacos-group/nacos-k8s/wiki/%E4%BD%BF%E7%94%A8peerfinder%E6%89%A9%E5%AE%B9%E6%8F%92%E4%BB%B6
+# Maintainer: MageEdu <mage@magedu.com>
+# Site: http://www.magedu.com
+# Nacos Cluster
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nacos
+data:
+  #mysql.host: "mysql-0.mysql.mall.svc.cluster.local"
+  mysql.host: "mysql-0.mysql"
+  # mysql master host
+  mysql.port: "3306"
 ---
 apiVersion: v1
 kind: Service
@@ -27,14 +38,6 @@ spec:
   selector:
     app: nacos
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nacos
-data:
-  mysql.host: "mysql"
-  mysql.port: "3306"
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -53,20 +56,10 @@ spec:
       annotations:
         pod.alpha.kubernetes.io/initialized: "true"
     spec:
-      #affinity:
-      #  podAntiAffinity:
-      #    requiredDuringSchedulingIgnoredDuringExecution:
-      #      - labelSelector:
-      #          matchExpressions:
-      #            - key: "app"
-      #              operator: In
-      #              values:
-      #                - nacos
-      #        topologyKey: "kubernetes.io/hostname"
-      #serviceAccountName: nfs-client-provisioner
       initContainers:
         - name: peer-finder-plugin-install
-          image: nacos/nacos-peer-finder-plugin:1.1
+          image: registry.magedu.com/nacos/nacos-peer-finder-plugin:1.1
+          #image: nacos/nacos-peer-finder-plugin:1.1
           imagePullPolicy: Always
           volumeMounts:
             - mountPath: /home/nacos/plugins/peer-finder
@@ -75,7 +68,8 @@ spec:
       containers:
         - name: nacos
           imagePullPolicy: Always
-          image: nacos/nacos-server:latest
+          image: registry.magedu.com/nacos/nacos-server:v2.2.3-slim
+          #image: nacos/nacos-server:v2.2.3-slim
           resources:
             requests:
               memory: "2Gi"
@@ -109,7 +103,7 @@ spec:
             - name: MYSQL_SERVICE_DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-user-pass
+                  name: mysql-secret
                   key: database.name
             - name: MYSQL_SERVICE_PORT
               valueFrom:
@@ -119,12 +113,12 @@ spec:
             - name: MYSQL_SERVICE_USER
               valueFrom:
                 secretKeyRef:
-                  name: mysql-user-pass
+                  name: mysql-secret
                   key: user.name
             - name: MYSQL_SERVICE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-user-pass
+                  name: mysql-secret
                   key: user.password
             - name: SPRING_DATASOURCE_PLATFORM
               value: "mysql"
@@ -149,7 +143,26 @@ spec:
         name: data
       spec:
         accessModes: [ "ReadWriteMany" ]
+        # Modify StorageClass before deployment.
         storageClassName: "nfs-csi"
         resources:
           requests:
-            storage: 20Gi
+            storage: 10Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nacos
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: nacos.magedu.com
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: nacos-headless
+            port:
+              number: 8848

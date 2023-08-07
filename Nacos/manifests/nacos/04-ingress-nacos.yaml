@@ -1,0 +1,19 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nacos
+  namespace: mall
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: nacos.magedu.com
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: nacos-headless
+            port:
+              number: 8848
