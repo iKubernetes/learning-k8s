@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: nacos
-  namespace: mall
 spec:
   podManagementPolicy: Parallel
   serviceName: nacos-headless

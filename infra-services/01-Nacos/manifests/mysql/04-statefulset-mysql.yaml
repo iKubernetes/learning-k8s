@@ -4,7 +4,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
-  namespace: mall
 spec:
   selector:
     matchLabels:
@@ -68,6 +67,7 @@ spec:
       containers:
       - name: mysql
         image: registry.magedu.com/nacos/nacos-mysql:5.7
+       #image: nacos/nacos-mysql:5.7
         env:
         - name: LANG
           value: "C.UTF-8"

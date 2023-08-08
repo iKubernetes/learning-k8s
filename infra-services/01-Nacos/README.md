@@ -7,8 +7,13 @@
 
 #### 部署过程
 
+创建名称空间
 ```bash
-kubectl apply -f ./ -n mall
+kubectl create namespace nacos
+```
+
+```bash
+kubectl apply -f 01-secrets-mysql.yaml -f  02-mysql-persistent.yaml -n nacos
 ```
 
 #### 访问入口
@@ -20,8 +25,13 @@ kubectl apply -f ./ -n mall
 ### 部署Nacos
 
 ```bash
-kubectl apply -f ./
+kubectl apply -f 03-nacos-persistent.yaml  -n nacos
 ```
+
+#### 登录nacos
+http://nacos.magedu.com
+
+默认用户名和密码: nacos/nacos
 
 #### 导入数据的方法示例
 
@@ -30,8 +40,8 @@ curl --location --request POST 'http://nacos-0.nacos:8848/nacos/v1/cs/configs?im
        --form 'policy=OVERWRITE' --form 'file=@"/PATH/TO/ZIP_FILE"'
 ```
 
-例如，下面的命令可以导入指定的示例文件中的配置。
+例如，下面的命令可以导入指定的示例文件中的配置,其中的10.244.3.41是nacos进程监听地址。
 ```bash
 curl --location -XPOST 'http://10.244.3.41:8848/nacos/v1/cs/configs?import=true&namespace=public' \
-            --form 'policy=OVERWRITE' --form 'file=@"examples/nacos_config_20230806.zip"'
+            --form 'policy=OVERWRITE' --form 'file=@"examples/nacos_config_20230808.zip"'
 ```
