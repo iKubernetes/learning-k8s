@@ -35,7 +35,8 @@ spec:
     spec:
       containers:
       - name: elasticsearch
-        image: elasticsearch:7.17.10
+        #image: elasticsearch:7.17.7
+        image: ikubernetes/elasticsearch:7.17.7-ik
         imagePullPolicy: IfNotPresent
         resources:
             limits:
@@ -64,9 +65,13 @@ spec:
           - name: cluster.initial_master_nodes
             value: "es-cluster-0"
           - name: ES_JAVA_OPTS
-            value: "-Xms512m -Xmx512m"
+            value: "-Xms1g -Xmx1g"
           - name: network.host
             value: "_site_"
+          - name: xpack.security.enabled
+            value: 'false'
+          - name: xpack.security.transport.ssl.enabled
+            value: 'false'
       initContainers:
       - name: fix-permissions
         image: busybox

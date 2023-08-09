@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: kibana
-        image: kibana:7.17.10
+        image: kibana:7.17.7
         imagePullPolicy: IfNotPresent
         resources:
           limits:
