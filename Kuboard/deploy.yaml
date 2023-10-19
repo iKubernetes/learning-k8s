@@ -120,4 +120,4 @@ spec:
       targetPort: 10081
   selector:
     k8s.kuboard.cn/name: kuboard-v3
-  type: NodePort
+  type: LoadBalancer
