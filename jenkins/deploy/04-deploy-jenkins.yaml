@@ -19,6 +19,15 @@ spec:
       - name: jenkins-store
         persistentVolumeClaim:
           claimName: jenkins-pvc
+      initContainers:
+      - name: fix-permissions
+        image: alpine
+        command: ["sh", "-c", "chown -R 1000:1000 /var/jenkins_home/"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: jenkins-store
+          mountPath: /var/jenkins_home/
       containers:
       - name: jenkins
         image: jenkins/jenkins:jdk17
