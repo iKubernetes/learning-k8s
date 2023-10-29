@@ -14,3 +14,5 @@ kubectl apply -f ./ -n mall
 
 通过Ingress定义的Host访问，地址如下，注意要使用https协议。
 https://minio.magedu.com/
+
+默认的用户名和密码是“minioadmin/magedu.com”。

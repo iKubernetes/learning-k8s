@@ -17,8 +17,8 @@ spec:
         fsGroup: 1001
       containers:
         - name: mongodb
-          image: registry.magedu.com/bitnami/mongodb:5.0.19
-          #image: bitnami/mongodb:5.0.19
+          #image: registry.magedu.com/bitnami/mongodb:5.0.19
+          image: bitnami/mongodb:5.0.19
           imagePullPolicy: IfNotPresent
           env:
             - name: MONGODB_DISABLE_SYSTEM_LOG

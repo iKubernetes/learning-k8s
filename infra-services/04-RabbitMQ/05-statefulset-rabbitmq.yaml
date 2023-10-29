@@ -30,8 +30,8 @@ spec:
           mountPath: /etc/rabbitmq/
       containers:
       - name: rabbitmq
-        image: registry.magedu.com/rabbitmq/rabbitmq:3.12-management
-        #image: rabbitmq:3.12-management
+        #image: registry.magedu.com/rabbitmq/rabbitmq:3.12-management
+        image: rabbitmq:3.12-management
         ports:
         - containerPort: 15672
           name: discovery
