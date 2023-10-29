@@ -14,7 +14,7 @@ kubectl apply -f 01-elasticsearch-cluster-persistent.yaml -n elastic
 待ES的相关Pod就绪后，即可部署fluentd
 
 ```bash
-kubectl apply -f 02-fluentd.yaml -n elastic
+kubectl apply -f 02-fluentbit.yaml -n elastic
 ```
 
 部署kibana
