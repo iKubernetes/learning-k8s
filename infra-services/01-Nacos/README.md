@@ -75,5 +75,5 @@ curl --location --request POST 'http://nacos-0.nacos:8848/nacos/v1/cs/configs?im
 例如，下面的命令可以导入指定的示例文件中的配置,其中的10.244.3.41是nacos进程监听地址。
 ```bash
 curl --location -XPOST 'http://10.244.3.41:8848/nacos/v1/cs/configs?import=true&namespace=public' \
-            --form 'policy=OVERWRITE' --form 'file=@"examples/nacos_config_20230808.zip"'
+            --form 'policy=OVERWRITE' --form 'file=@"examples/nacos_config_20231029.zip"'
 ```
