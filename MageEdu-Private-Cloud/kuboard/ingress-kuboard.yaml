@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kuboard
+  namespace: kuboard
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: kuboard.magedu.com
+    http:
+      paths:
+      - path: /
+        backend:
+          service:
+            name: kuboard-v3
+            port:
+              number: 80
+        pathType: Prefix

@@ -1,0 +1,81 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# Site: http://www.magedu.com
+#
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      initContainers:
+      - name: config
+        #image: registry.magedu.com/redis/redis:7.0
+        image: redis:7.0
+        env:
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: redis-secret
+                key: REDIS_PASSWORD
+        command: [ "sh", "-c", "/scripts/redis_init.sh" ]
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/redis/
+        - name: config
+          mountPath: /tmp/redis/
+        - name: init-script
+          mountPath: /scripts/
+      containers:
+      - name: redis
+        #image: registry.magedu.com/redis/redis:7.0
+        image: redis:7.0
+        command: ["redis-server"]
+        args: ["/etc/redis/redis.conf"]
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: redis-config
+          mountPath: /etc/redis/
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: data
+      - name: redis-config
+        emptyDir: {}
+      - name: init-script
+        configMap:
+          name: sentinel-scripts
+          defaultMode: 0777
+          items:
+          - key: redis_init.sh
+            path: redis_init.sh
+      - name: config
+        configMap:
+          name: redis-conf
+          items:
+          - key: redis.conf
+            path: redis.conf
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        app: redis
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: nfs-csi
+      resources:
+        requests:
+          storage: 10Gi

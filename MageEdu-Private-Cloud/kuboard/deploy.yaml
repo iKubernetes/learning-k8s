@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kuboard
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kuboard-boostrap
+  namespace: kuboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kuboard-boostrap-crb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: kuboard-boostrap
+  namespace: kuboard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s.kuboard.cn/name: kuboard-v3
+  name: kuboard-v3
+  namespace: kuboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s.kuboard.cn/name: kuboard-v3
+  template:
+    metadata:
+      labels:
+        k8s.kuboard.cn/name: kuboard-v3
+    spec:
+      containers:
+        - env:
+            - name: "KUBOARD_ENDPOINT"
+              value: "http://kuboard-v3:80"
+            - name: "KUBOARD_AGENT_SERVER_TCP_PORT"
+              value: "10081"
+          image: registry.magedu.com/eipwork/kuboard:v3 
+          volumeMounts:
+          - name: kuboard-data 
+            mountPath: /data 
+            readOnly: false
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: kuboard
+          ports:
+            - containerPort: 80
+              name: web
+              protocol: TCP
+            - containerPort: 443
+              name: https
+              protocol: TCP
+            - containerPort: 10081
+              name: peer
+              protocol: TCP
+            - containerPort: 10081
+              name: peer-u
+              protocol: UDP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+      volumes:
+      - name: kuboard-data
+        emptyDir: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccount: kuboard-boostrap
+      serviceAccountName: kuboard-boostrap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s.kuboard.cn/name: kuboard-v3
+  name: kuboard-v3
+  namespace: kuboard
+spec:
+  ports:
+    - name: web
+      nodePort: 30080
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: tcp
+      nodePort: 30081
+      port: 10081
+      protocol: TCP
+      targetPort: 10081
+    - name: udp
+      nodePort: 30081
+      port: 10081
+      protocol: UDP
+      targetPort: 10081
+  selector:
+    k8s.kuboard.cn/name: kuboard-v3
+  type: LoadBalancer
