@@ -19,8 +19,8 @@ spec:
     spec:
       initContainers:
       - name: config
-        #image: registry.magedu.com/redis/redis:7.0
-        image: redis:7.0
+        image: registry.magedu.com/redis/redis:7.0
+        #image: redis:7.0
         env:
           - name: REDIS_PASSWORD
             valueFrom:
@@ -37,8 +37,8 @@ spec:
           mountPath: /scripts/
       containers:
       - name: redis
-        #image: registry.magedu.com/redis/redis:7.0
-        image: redis:7.0
+        image: registry.magedu.com/redis/redis:7.0
+        #image: redis:7.0
         command: ["redis-server"]
         args: ["/etc/redis/redis.conf"]
         ports:
