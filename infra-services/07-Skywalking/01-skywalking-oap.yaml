@@ -22,7 +22,7 @@ spec:
             - name: SW_STORAGE
               value: elasticsearch
             - name: SW_STORAGE_ES_CLUSTER_NODES
-              value: elasticsearch:9200
+              value: elasticsearch.elatic.svc:9200
           readinessProbe:
             exec:
               command:
