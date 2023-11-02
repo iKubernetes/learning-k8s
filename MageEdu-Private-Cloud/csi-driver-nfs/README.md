@@ -13,18 +13,22 @@
 
 ```bash
 kubectl create namespace nfs
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/nfs-provisioner/nfs-server.yaml --namespace nfs
+```
+
+而后，运行如下命令，部署nfs-server示例环境。
+```bash
+git clone https://github.com/iKubernetes/learning-k8s.git
+cd learning-k8s/MageEdu-Private-Cloud/
+kubectl apply -f ./csi-driver-nfs/nfs-server.yaml --namespace nfs
 ```
 
 ## Install NFS CSI Driver  on a kubernetes cluster
 
 支持两种部署方式：远程部署和本地部署，前者是指直接从远程仓库中获取部署配置文件完成的部署，而后者则需要首先克隆csi-driver-nfs项目的仓库至本地，并在克隆而来的本地项目目录中进行部署。
 
- - 本地部署
+ - 本地部署csi-driver-nfs
 ```console
-git clone https://github.com/iKubernetes/learning-k8s.git
-cd learning-k8s/MageEdu-Private-Cloud/
-kubectl apply -f csi-driver-nfs/v4.4.0/
+kubectl apply -f ./csi-driver-nfs/v4.4.0/
 ```
 
 - check pods status:
