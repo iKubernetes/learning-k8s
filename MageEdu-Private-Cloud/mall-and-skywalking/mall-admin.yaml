@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-admin
+  labels:
+    app: mall-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-admin
+  template:
+    metadata:
+      labels:
+        app: mall-admin
+    spec:
+      containers:
+        - name: mall-admin
+          # 指定Docker Hub中的镜像地址
+          image: ikubernetes/mall-admin:1.0-SNAPSHOT
+          ports:
+            - containerPort: 8080
+          env:
+            # 指定环境
+            - name: spring.profiles.active
+              value: prod
+            # 指定时区
+            - name: TZ
+              value: Asia/Shanghai
+            # 指定Nacos地址
+            - name: spring.cloud.nacos.discovery.server-addr
+              value: http://nacos.nacos.svc:8848
+            - name: spring.cloud.nacos.config.server-addr
+              value: http://nacos.nacos.svc:8848
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: "mall-admin"
+            - name: SW_AGENT_NAMESPACE
+              value: "mall"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "skywalking-oap.tracing.svc:11800"
+          volumeMounts:
+          - mountPath: /skywalking
+            name: skywalking-agent
+      initContainers:
+        - name: sw-agent
+          image: registry.magedu.com/apache/skywalking-java-agent:9.0.0-java8
+          #image: apache/skywalking-java-agent:9.0.0-java8
+          volumeMounts:
+            - name: skywalking-agent
+              mountPath: /data
+          command: [ "/bin/sh" ]
+          args: [ "-c", "cp -R /skywalking/agent /data/" ]
+      volumes:
+        - name: skywalking-agent
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-admin
+spec:
+  type: ClusterIP
+  selector:
+    app: mall-admin
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080

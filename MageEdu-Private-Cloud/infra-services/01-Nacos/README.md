@@ -34,7 +34,7 @@ mysql> GRANT ALL ON nacosdb.* TO nacos@'%' IDENTIFIED BY 'magedu.com';
 ### 部署Nacos
 
 ```bash
-kubectl apply -f 03-nacos-persistent.yaml  -n nacos
+kubectl apply -f 03-nacos-persistent.yaml  -f 04-nacos-service.yaml -n nacos
 ```
 
 #### 登录nacos

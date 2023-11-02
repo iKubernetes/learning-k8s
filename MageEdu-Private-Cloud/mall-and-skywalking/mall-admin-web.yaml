@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-admin-web
+  labels:
+    app: mall-admin-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-admin-web
+  template:
+    metadata:
+      labels:
+        app: mall-admin-web
+    spec:
+      containers:
+        - name: mall-admin-web
+          # 指定Docker Hub中的镜像地址
+          image: ikubernetes/mall-admin-web:v1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            # 指定环境
+            - name: spring.profiles.active
+              value: prod
+            # 指定时区
+            - name: TZ
+              value: Asia/Shanghai
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-admin-web
+spec:
+  type: NodePort
+  selector:
+    app: mall-admin-web
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mall-admin-web
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: mall-admin-web.magedu.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mall-admin-web
+            port:
+              number: 80

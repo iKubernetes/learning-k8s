@@ -1,0 +1,93 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mall-gateway
+  labels:
+    app: mall-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mall-gateway
+  template:
+    metadata:
+      labels:
+        app: mall-gateway
+    spec:
+      containers:
+        - name: mall-gateway
+          # 指定Docker Hub中的镜像地址
+          image: ikubernetes/mall-gateway:1.0-SNAPSHOT
+          ports:
+            - containerPort: 8201
+          env:
+            # 指定环境
+            - name: spring.profiles.active
+              value: prod
+            # 指定时区
+            - name: TZ
+              value: Asia/Shanghai
+            # 指定Nacos地址
+            - name: spring.cloud.nacos.discovery.server-addr
+              value: http://nacos.nacos.svc:8848
+            - name: spring.cloud.nacos.config.server-addr
+              value: http://nacos.nacos.svc:8848
+            - name: JAVA_OPTS
+              value: |-
+                -javaagent:/skywalking/agent/skywalking-agent.jar -Dskywalking.agent.service_name=mall-gateway -Dskywalking.collector.backend_service=skywalking-oap.tracing.svc:11800 
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: "mall-gateway"
+            - name: SW_AGENT_NAMESPACE
+              value: "mall"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "skywalking-oap.tracing.svc:11800"
+          volumeMounts:
+          - mountPath: /skywalking
+            name: skywalking-agent
+      initContainers:
+        - name: sw-agent
+          image: registry.magedu.com/apache/skywalking-java-agent:9.0.0-java8
+          #image: apache/skywalking-java-agent:9.0.0-java8
+          volumeMounts:
+            - name: skywalking-agent   
+              mountPath: /data
+          command: [ "/bin/sh" ]
+          args: [ "-c", "cp -R /skywalking/agent /data/" ]  
+      volumes:
+        - name: skywalking-agent
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mall-gateway
+spec:
+  type: NodePort
+  selector:
+    app: mall-gateway
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8201
+      targetPort: 8201
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mall-gateway
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: mall-gateway.magedu.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mall-gateway
+            port:
+              number: 8201
