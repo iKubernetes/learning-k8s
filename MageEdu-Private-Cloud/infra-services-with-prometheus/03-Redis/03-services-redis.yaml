@@ -1,0 +1,36 @@
+# Headless service so sentinel could access redisses using syntax <pod-name>.<service-name>
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/instance: redis
+spec:
+  clusterIP: None
+  ports:
+  - port: 6379
+    targetPort: 6379
+    name: redis
+  selector:
+    app: redis
+---
+# Sentinel service used for project pod connection
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinel
+  labels:
+    app: sentinel
+    app.kubernetes.io/component: sentinel
+    app.kubernetes.io/instance: sentinel
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+  - port: 5000
+    targetPort: 5000
+    name: sentinel
+  selector:
+    app: sentinel

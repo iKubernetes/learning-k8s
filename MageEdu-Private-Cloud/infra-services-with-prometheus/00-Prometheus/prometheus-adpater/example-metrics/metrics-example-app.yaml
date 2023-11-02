@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: metrics-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: metrics-app
+      controller: metrics-app
+  template:
+    metadata:
+      labels:
+        app: metrics-app
+        controller: metrics-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - image: ikubernetes/metrics-app
+        name: metrics-app
+        ports:
+        - name: web
+          containerPort: 80
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-app
+spec:
+  type: NodePort
+  ports:
+  - name: web
+    port: 80
+    targetPort: 80
+  selector:
+    app: metrics-app
+    controller: metrics-app

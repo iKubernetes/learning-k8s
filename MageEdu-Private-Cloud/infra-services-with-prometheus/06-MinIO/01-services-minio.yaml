@@ -1,0 +1,33 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: minio-headless
+  labels:
+    app: minio
+spec:
+  clusterIP: None
+  #publishNotReadyAddresses: true
+  selector:
+    app: minio
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 9000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+spec:
+  type: LoadBalancer
+  selector:
+    app: minio
+  ports:
+    - port: 9000
+      targetPort: 9000
+      name: http
+    - port: 9001
+      targetPort: 9001
+      name: console
+---

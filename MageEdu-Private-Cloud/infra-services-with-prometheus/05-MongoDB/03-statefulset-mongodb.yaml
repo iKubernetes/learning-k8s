@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+spec:
+  serviceName: mongodb
+  selector:
+    matchLabels:
+      app: mongodb
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mongodb
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9216"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: mongodb
+          image: registry.magedu.com/bitnami/mongodb:5.0.19
+          #image: bitnami/mongodb:5.0.19
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGODB_DISABLE_SYSTEM_LOG
+              value: "false"
+            - name: MONGODB_SYSTEM_LOG_VERBOSITY
+              value: "1"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MONGODB_REPLICA_SET_NAME
+              value: "replicaset"
+            - name: MONGODB_INITIAL_PRIMARY_HOST
+              value: "mongodb-0.mongodb"
+            - name: MONGODB_ADVERTISED_HOSTNAME
+              value: "$(POD_NAME).mongodb"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "yes"
+          command:
+            - /scripts/script.sh
+          securityContext:
+            runAsUser: 1001
+          volumeMounts:
+            - name: config
+              mountPath: /scripts
+            - name: data
+              mountPath: /bitnami/mongodb
+        - name: mongodb-exporter
+          image: registry.magedu.com/percona/mongodb_exporter:0.39
+          args:
+            - --collect-all
+          env:
+            - name: MONGODB_URI
+              value: "mongodb://127.0.0.1:27017/admin?ssl=false"
+          ports:
+            - name: mongo-exporter
+              containerPort: 9216
+      volumes:
+        - name: config
+          configMap:
+            name: mongo-config
+            defaultMode: 0755
+            items:
+              - key: script.sh
+                path: script.sh
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        storageClassName: "nfs-csi"
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 10Gi
