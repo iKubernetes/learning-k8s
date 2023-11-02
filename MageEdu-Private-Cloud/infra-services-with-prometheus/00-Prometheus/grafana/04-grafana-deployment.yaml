@@ -17,6 +17,15 @@ spec:
       labels:
         app: grafana
     spec:
+      initContainers:
+      - name: fix-permissions
+        image: alpine
+        command: ["sh", "-c", "chown -R 472:472 /var/lib/grafana/"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
       containers:
       - name: grafana
         image: grafana/grafana:9.5.13
@@ -24,13 +33,6 @@ spec:
         ports:
         - name: grafana
           containerPort: 3000
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/health
-            port: http
-            scheme: HTTP
-          periodSeconds: 10
         resources:
           limits:
             cpu: 200m
