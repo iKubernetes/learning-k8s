@@ -1,11 +1,12 @@
-# k8s-prom
+# Prometheus Monitoring System
 
-- prometheus：部署Promethues Metrics API Server所需要的各资源配置清单。
+- prometheus-server：部署Promethues Metrics API Server所需要的各资源配置清单。
 - prometheus-adapter：部署基于prometheus的自定义指标API服务器所需要的各资源配置清单。
 - podinfo：测试使用的podinfo相关的deployment和service对象的资源配置清单。
 - node_exporter：于kubernetes集群各节点部署node_exporter。
 - kube-state-metrics：聚合kubernetes资源对象，提供指标数据。
 - alertmanager：部署AlertManager告警系统。
+- grafana：部署Grafana Dashboard。
 
 ### 部署Prometheus
 

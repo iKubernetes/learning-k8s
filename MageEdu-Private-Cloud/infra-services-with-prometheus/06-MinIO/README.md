@@ -6,8 +6,8 @@
 将配置清单中定义的资源对象部署于Kubernetes集群上即可，需要手动指定名称空间；
 
 ```bash
-kubectl create namespace mall
-kubectl apply -f ./ -n mall
+kubectl create namespace minio
+kubectl apply -f ./ -n minio
 ```
 
 ### 访问console
@@ -46,6 +46,17 @@ scrape_configs:
   static_configs:
   - targets: ['localhost:9000']
 ```
+
+```yaml
+scrape_configs:
+- job_name: minio-job-node
+  metrics_path: /minio/v2/metrics/node
+  scheme: http
+  static_configs:
+  - targets: ['localhost:9000']
+```
+
+
 
 
 
