@@ -23,7 +23,7 @@ kubeadm config images list --image-repository=registry.magedu.com/google_contain
 kubeadm config images pull --cri-socket unix:///run/cri-dockerd.sock --image-repository=registry.magedu.com/google_containers
 ```
 
-第三步，基于现在的pause image生成“registry.k8s.io/pause:3.6“标签。
+第三步，基于现在的pause image生成“registry.k8s.io/pause:3.6“标签。若不想采用该步骤，还可以在kubeadm的配置文件（）中指定要使用puase image，配置方式为“KUBELET_KUBEADM_ARGS="--network-plugin=cni --pod-infra-container-image=registry.magedu.com/google_containers/pause:3.9"”。
 
 ```bash
 docker image tag registry.magedu.com/google_containers/pause:3.9  registry.k8s.io/pause:3.6

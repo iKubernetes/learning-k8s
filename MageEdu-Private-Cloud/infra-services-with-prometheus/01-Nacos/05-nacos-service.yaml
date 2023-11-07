@@ -4,8 +4,12 @@ metadata:
   name: nacos
   labels:
     app: nacos 
+  annotations: {}
+    #prometheus.io/scrape: "true"
+    #prometheus.io/port: "8848"
+    #prometheus.io/path: "/nacos/actuator/prometheus"  
 spec:
-  type: LoadBalancer
+  #type: LoadBalancer
   ports:
     - port: 8848
       name: server
