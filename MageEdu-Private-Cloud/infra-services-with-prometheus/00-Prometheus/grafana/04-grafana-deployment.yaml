@@ -28,7 +28,7 @@ spec:
           mountPath: /var/lib/grafana
       containers:
       - name: grafana
-        image: grafana/grafana:9.5.13
+        image: registry.magedu.com/grafana/grafana:9.5.13
         imagePullPolicy: IfNotPresent
         ports:
         - name: grafana
