@@ -13,10 +13,9 @@ kubectl apply -f ./ -n rabbit
 类似如下的URL可用于访问RabbitMQ内置的管理Web UI。
 http://rabbitmq.magedu.com
 
-默认的用户名和密码是“guest/guest”。
+默认的用户名和密码是“admin/magedu.com”。
 
 为mall-microservice提供服务时,需要创建新的用户malladmin/magedu.com,并创建新的vhost，名称为/mall，并授权给malladmin用户。
-
 
 
 ## 版权声明
