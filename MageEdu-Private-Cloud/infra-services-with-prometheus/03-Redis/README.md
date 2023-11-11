@@ -26,6 +26,9 @@ kubectl apply -f . -n redis
 kubectl apply -f ./sentinel/ -n redis
 ```
 
+### Grafana Dashboard
+
+Dashboard ID: 763
 
 
 ## 版权声明
