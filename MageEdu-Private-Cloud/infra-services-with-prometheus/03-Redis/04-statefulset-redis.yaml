@@ -20,6 +20,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9121"
         prometheus.io/path: "/metrics"
+        # Grafana Dashboard ID: 763
     spec:
       initContainers:
       - name: config
