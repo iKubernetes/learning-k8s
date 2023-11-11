@@ -78,8 +78,6 @@ curl --location -XPOST 'http://10.244.3.41:8848/nacos/v1/cs/configs?import=true&
             --form 'policy=OVERWRITE' --form 'file=@"examples/nacos_config_20231029.zip"'
 ```
 
-
-
 ## 版权声明
 
 本项目由[马哥教育](www.magedu.com)开发，允许自由转载，但必须保留马哥教育及相关的一切标识。另外，商用需要征得马哥教育的书面同意。欢迎扫描下面的二维码关注iKubernetes公众号，及时获取更多技术文章。
