@@ -1,0 +1,175 @@
+# Author: MageEdu "<mage@magedu.com>"
+# Date: 2023-11-28-01
+#
+heat_template_version: 2021-04-16
+
+description: Simple template to create three kubernetes cluster hosts.
+
+parameters:
+  key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for compute instance
+    default: 'mykey'
+  image_id:
+    type: string
+    label: Image ID
+    description: Image to be used for compute instance
+    default: 'ubuntu-22.04-with-kubeadm-amd64'
+  master_nodes_flavor:
+    type: string
+    label: Master Instance Type
+    description: Type of instance (flavor) to be used by master
+    default: 'm2.c2r4d30'
+  worker_nodes_flavor:
+    type: string
+    label: Worker Node Instance Type
+    description: Type of instance (flavor) to be used by worker
+    default: 'm2.c2r4d30'  
+  number_of_cluster01_worker_nodes:
+    type: number
+    description: Number of worker nodes to be created for cluster01
+    default: 1
+    constraints:
+      - range: { min: 1, max: 3 }
+  number_of_cluster02_worker_nodes:
+    type: number
+    description: Number of worker nodes to be created for cluster02
+    default: 1
+    constraints:
+      - range: { min: 1, max: 3 }      
+  external_network_id:
+    type: string
+    description: External Network Name
+    default: 'provider'
+
+resources:
+  # 创建虚拟网络
+  k8snet01:
+    type: OS::Neutron::Net
+
+  k8snet02:
+    type: OS::Neutron::Net
+
+  # 创建虚拟子网
+  k8snet01_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: k8snet01 }
+      cidr: "172.30.10.0/24"
+      gateway_ip: "172.30.10.254"
+      allocation_pools:
+      - {start: "172.30.10.2", end: "172.30.10.200"}
+      dns_nameservers: [ "114.114.114.114", "8.8.8.8", "8.8.4.4" ]
+      ip_version: 4
+
+  k8snet02_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: k8snet02 }
+      cidr: "172.30.20.0/24"
+      gateway_ip: "172.30.20.254"
+      allocation_pools:
+      - {start: "172.30.20.2", end: "172.30.20.200"}
+      dns_nameservers: [ "114.114.114.114", "8.8.8.8", "8.8.4.4" ]
+      ip_version: 4
+
+  # 创建虚拟路由器
+  k8snets_router:
+    type: OS::Neutron::Router
+
+  # 创建虚拟路由器接口，连接子网至k8snet01_subnet
+  k8snets_router_interface_k8snet01:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: k8snets_router }
+      subnet: { get_resource: k8snet01_subnet }   
+
+  k8snets_router_interface_k8snet02:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: k8snets_router }
+      subnet: { get_resource: k8snet02_subnet }   
+
+  # 创建安全组
+  k8scluster_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: neutron_security_group
+      rules:
+        - direction: ingress
+          ethertype: IPv4
+          remote_mode: remote_ip_prefix
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          ethertype: IPv4
+          remote_mode: remote_group_id
+        - direction: ingress
+          ethertype: IPv6
+          remote_mode: remote_group_id
+
+  # 创建cluster01的master实例          
+  cluster01_k8s_master_01:
+    type: OS::Nova::Server
+    depends_on: [ "k8scluster_group", "k8snet01", "k8snet01_subnet" ]
+    properties:
+      name: c01-master01
+      key_name: { get_param: key_name }
+      image: { get_param: image_id }
+      flavor: { get_param: master_nodes_flavor }
+      security_groups:
+      - { get_resource: "k8scluster_group" }
+      networks:
+      - network: { get_resource: k8snet01 }
+        fixed_ip: "172.30.10.6"
+
+  # 创建cluster02的master实例          
+  cluster02_k8s_master_01:
+    type: OS::Nova::Server
+    depends_on: [ "k8scluster_group", "k8snet02", "k8snet02_subnet" ]
+    properties:
+      name: c02-master01
+      key_name: { get_param: key_name }
+      image: { get_param: image_id }
+      flavor: { get_param: master_nodes_flavor }
+      security_groups:
+      - { get_resource: "k8scluster_group" }
+      networks:
+      - network: { get_resource: k8snet02 }
+        fixed_ip: "172.30.20.6"
+
+  # 创建cluster01的各nodes实例，各实例未使用固定地址          
+  cluster01_k8s_worker_nodes_group:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: number_of_cluster01_worker_nodes }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          name: c01-node-%index%
+          key_name: { get_param: key_name }
+          image: { get_param: image_id }
+          flavor: { get_param: worker_nodes_flavor }
+          security_groups:
+          - { get_resource: "k8scluster_group" }
+          networks:
+          - network: { get_resource: k8snet01 }
+          - network: { get_param: external_network_id }
+          
+  # 创建cluster02的各nodes实例，各实例未使用固定地址          
+  cluster02_k8s_worker_nodes_group:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: number_of_cluster02_worker_nodes }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          name: c02-node-%index%
+          key_name: { get_param: key_name }
+          image: { get_param: image_id }
+          flavor: { get_param: worker_nodes_flavor }
+          security_groups:
+          - { get_resource: "k8scluster_group" }
+          networks:
+          - network: { get_resource: k8snet02 }
+          - network: { get_param: external_network_id }

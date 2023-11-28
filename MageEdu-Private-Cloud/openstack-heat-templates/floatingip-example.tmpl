@@ -1,0 +1,79 @@
+heat_template_version: 2021-04-16
+
+description: Simple template to create three kubernetes cluster hosts.
+
+parameters:
+  key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for compute instance
+    default: 'mykey'
+  image_id:
+    type: string
+    label: Image ID
+    description: Image to be used for compute instance
+    default: 'ubuntu-22.04-with-kubeadm-amd64'
+  
+  external_network_id:
+    type: string
+    description: External Network Name
+    default: 'provider'
+    
+  instance_type:
+    type: string
+    label: Instance Type
+    description: Type of instance (flavor) to be used
+    default: 'm2.c4r8d40'
+
+resources:
+  k8snet01:
+    type: OS::Neutron::Net
+
+  k8snet01_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: k8snet01 }
+      cidr: "172.30.10.0/24"
+      # 接入到路由器上的子网，必须配置网关IP
+      gateway_ip: "172.30.10.254"        
+      allocation_pools:
+      - {start: "172.30.10.2", end: "172.30.10.200"}
+      dns_nameservers: [ "114.114.114.114", "8.8.8.8", "8.8.4.4" ]
+      ip_version: 4
+      
+  k8snets_router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: { get_param: external_network_id }
+
+  # 创建路由器专用的接口，该接口将自动使用子网的网关地址
+  k8snets_router_interface_k8snet01:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: k8snets_router }
+      subnet: { get_resource: k8snet01_subnet }   
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: external_network_id }
+
+  association:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: my_instace_01 }
+
+  my_instace_01:
+    type: OS::Nova::Server
+    properties:
+      # 指定主机名
+      name: k8s-master01
+      key_name: { get_param: key_name }
+      image: { get_param: image_id }
+      flavor: { get_param: instance_type }
+      networks:
+      - network: { get_resource: k8snet01 }
+        # 指定要使用的固定IP地址
+        fixed_ip: "172.30.10.6"
