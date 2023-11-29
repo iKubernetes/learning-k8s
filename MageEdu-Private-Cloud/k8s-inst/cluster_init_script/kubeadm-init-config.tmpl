@@ -1,0 +1,49 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: magedu.comc4mu9kzd5q7ur
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: ${K8S_API_ADDVERTISE_IP}
+  bindPort: 6443
+nodeRegistration:
+  criSocket: unix:///var/run/cri-dockerd.sock
+  imagePullPolicy: IfNotPresent
+  name: ${K8S_MASTER01_HOSTNAME}
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/control-plane
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+apiServer:
+  certSANs:
+  - ${K8S_API_ENDPOINT}
+  - ${K8S_API_ADDVERTISE_IP}
+controlPlaneEndpoint: "${K8S_API_ENDPOINT}:6443"
+certificatesDir: /etc/kubernetes/pki
+clusterName: ${K8S_CLUSTER_NAME}
+controllerManager: {}
+dns: {}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: registry.magedu.com/google_containers
+kubernetesVersion: v${K8S_VERSION}
+networking:
+  dnsDomain: ${K8S_DNS_DOMAIN}
+  serviceSubnet: ${K8S_SERVICE_SUBNET}
+  podSubnet: ${K8S_POD_SUBNET}
+scheduler: {}
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+# 用于配置kube-proxy上为Service指定的代理模式，默认为iptables；
+mode: "${K8S_SERVICE_MODE}"
