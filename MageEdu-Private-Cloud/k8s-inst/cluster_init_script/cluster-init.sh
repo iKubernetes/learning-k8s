@@ -1,20 +1,23 @@
 #!/bin/bash
 #
 # 定义控制平面节点和工作节点数组，每个主机元素的格式为“主机名:IP地址“
-MasterNodes=('c01-master01:192.168.10.6')
-WorkerNodes=('c01-node01:192.168.10.11' 'c01-node02:192.168.10.12')
+MasterNodes=('k8s-master01:192.168.10.6')
+WorkerNodes=('k8s-node01:192.168.10.11' 'k8s-node02:192.168.10.12' 'k8s-node03:192.168.10.13')
 
 DomainName='magedu.com'
-KubeAPIEndpoint="c01-kubeapi.${DomainName}"
+KubeAPIEndpoint="k8s-kubeapi.${DomainName}"
 KubeAPIEndpointIP="$(echo ${MasterNodes[0]} | cut -d: -f2)"
 KubeMaster01="$(echo ${MasterNodes[0]} | cut -d: -f1).${DomainName}"
 
-HostFile='/etc/hosts'
+HostFile='./hosts'
 
 PauseContainerImage='registry.magedu.com/google_containers/pause:3.9'
 
 generate_hosts_file() {
   echo "Generate hosts file entry..."
+
+  cp /etc/hosts $HostFile
+
   for Host in ${MasterNodes[*]} ${WorkerNodes[*]}; do
     HostName=$(echo $Host | cut -d: -f1)
     HostIP=$(echo $Host | cut -d: -f2)
@@ -22,6 +25,8 @@ generate_hosts_file() {
   done
   
   echo -e "${KubeAPIEndpointIP}\t${KubeAPIEndpoint}" >> $HostFile
+
+  cp -f $HostFile /etc/hosts
 }
 
 tag_pause_image() {
@@ -65,16 +70,17 @@ join_worker_nodes() {
   [ -f $HOME/.ssh/id_rsa ] || ssh-keygen -t rsa -P '' -f $HOME/.ssh/id_rsa
 
   for Node in ${WorkerNodes[*]}; do 
-    NodeIP=$(echo $Host | cut -d: -f2)
+    NodeIP=$(echo $Node | cut -d: -f2)
     ssh-copy-id -f -i $HOME/.ssh/id_rsa.pub root@${NodeIP}
 
     scp /etc/hosts ${NodeIP}:/etc/hosts
-    ssh ${NodeIP} "tag_pause_image && \
-      $JoinCommand--cri-socket unix:///var/run/cri-dockerd.sock"      
+    ssh ${NodeIP} "docker image pull registry.magedu.com/google_containers/pause:3.9 && \
+      docker image tag registry.magedu.com/google_containers/pause:3.9 registry.k8s.io/pause:3.6 && \
+      $JoinCommand --cri-socket unix:///var/run/cri-dockerd.sock"      
   done
 }
 
-generate_hosts_file
+[ -f $HostFile ] || generate_hosts_file
 tag_pause_image
 generate_kubeadm_init_config
 init_cluster_control_plane
