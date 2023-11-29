@@ -53,23 +53,11 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       network_id: { get_resource: k8snet01 }
-      cidr: "172.30.10.0/24"
-      gateway_ip: "172.30.10.254"
+      cidr: "192.168.10.0/24"
+      gateway_ip: ""
       allocation_pools:
-      - {start: "172.30.10.2", end: "172.30.10.200"}
-      dns_nameservers: [ "114.114.114.114", "8.8.8.8", "8.8.4.4" ]
+      - {start: "192.168.10.2", end: "192.168.10.200"}
       ip_version: 4
-   
-  # 创建虚拟路由器
-  k8snets_router:
-    type: OS::Neutron::Router
-
-  # 创建虚拟路由器接口，连接子网至k8snet01_subnet
-  k8snets_router_interface_k8snet01:
-    type: OS::Neutron::RouterInterface
-    properties:
-      router_id: { get_resource: k8snets_router }
-      subnet: { get_resource: k8snet01_subnet }   
 
   # 创建安全组
   k8scluster_group:

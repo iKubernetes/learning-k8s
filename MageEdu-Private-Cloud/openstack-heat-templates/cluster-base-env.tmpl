@@ -1,5 +1,6 @@
 # Author: MageEdu "<mage@magedu.com>"
 # Date: 2023-11-28-01
+# 创建多个主机实例，每个主机拥有两个网络接口，一个用于内部通信，一个负责接入外部网络
 #
 heat_template_version: 2021-04-16
 
@@ -41,24 +42,12 @@ resources:
     type: OS::Neutron::Subnet
     properties:
       network_id: { get_resource: k8snet01 }
-      cidr: "172.30.10.0/24"
-      gateway_ip: "172.30.10.254"
+      cidr: "192.168.10.0/24"
+      gateway_ip: ""
       allocation_pools:
-      - {start: "172.30.10.2", end: "172.30.10.200"}
-      dns_nameservers: [ "114.114.114.114", "8.8.8.8", "8.8.4.4" ]
+      - {start: "192.168.10.2", end: "192.168.10.200"}
       ip_version: 4
    
-  # 创建虚拟路由器
-  k8snets_router:
-    type: OS::Neutron::Router
-
-  # 创建虚拟路由器接口，连接子网至k8snet01_subnet
-  k8snets_router_interface_k8snet01:
-    type: OS::Neutron::RouterInterface
-    properties:
-      router_id: { get_resource: k8snets_router }
-      subnet: { get_resource: k8snet01_subnet }   
-
   # 创建安全组
   k8scluster_group:
     type: OS::Neutron::SecurityGroup
@@ -77,7 +66,7 @@ resources:
           remote_mode: remote_group_id
 
   # 创建master01实例
-  instace_k8s_master_01:
+  instace_k8s_master01:
     type: OS::Nova::Server
     depends_on:
     - k8scluster_group
@@ -92,11 +81,11 @@ resources:
       - { get_resource: "k8scluster_group" }
       networks:
       - network: { get_resource: k8snet01 }
-        fixed_ip: "172.30.10.6"
+        fixed_ip: "192.168.10.6"
       - network: { get_param: external_network_id }
      
   # 创建node01实例
-  instace_k8s_node_01:
+  instace_k8s_node01:
     type: OS::Nova::Server
     depends_on: [ "k8scluster_group", "k8snet01", "k8snet01_subnet" ] 
     properties:
@@ -108,11 +97,11 @@ resources:
       - { get_resource: "k8scluster_group" }
       networks:
       - network: { get_resource: k8snet01 }
-        fixed_ip: "172.30.10.11"
+        fixed_ip: "192.168.10.11"
       - network: { get_param: external_network_id }
    
   # 创建node02实例
-  instace_k8s_node_02:
+  instace_k8s_node02:
     type: OS::Nova::Server
     depends_on: [ "k8scluster_group", "k8snet01", "k8snet01_subnet" ]
     properties:
@@ -124,5 +113,21 @@ resources:
       - { get_resource: "k8scluster_group" }
       networks:
       - network: { get_resource: k8snet01 }
-        fixed_ip: "172.30.10.12"
+        fixed_ip: "192.168.10.12"
+      - network: { get_param: external_network_id }
+
+  # 创建node03实例
+  instace_k8s_node03:
+    type: OS::Nova::Server
+    depends_on: [ "k8scluster_group", "k8snet01", "k8snet01_subnet" ]
+    properties:
+      name: k8s-node03
+      key_name: { get_param: key_name }
+      image: { get_param: image_id }
+      flavor: { get_param: worker_nodes_flavor }
+      security_groups:
+      - { get_resource: "k8scluster_group" }
+      networks:
+      - network: { get_resource: k8snet01 }
+        fixed_ip: "192.168.10.13"
       - network: { get_param: external_network_id }

@@ -1,0 +1,170 @@
+# Author: MageEdu "<mage@magedu.com>"
+# Date: 2023-11-28-01
+# 创建多个主机实例
+#
+heat_template_version: 2021-04-16
+
+description: Simple template to create kubernetes cluster hosts.
+
+parameters:
+  key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for compute instance
+    default: 'mykey'
+  image_id:
+    type: string
+    label: Image ID
+    description: Image to be used for compute instance
+    default: 'ubuntu-22.04-with-kubeadm-amd64'
+  master_nodes_flavor:
+    type: string
+    label: Master Node Instance Type
+    description: Type of instance (flavor) to be used by master
+    default: 'm2.c2r4d30'
+  worker_nodes_flavor:
+    type: string
+    label: Worker Node Instance Type
+    description: Type of instance (flavor) to be used by worker
+    default: 'm2.c2r4d30'  
+  external_network_id:
+    type: string
+    description: External Network Name
+    default: 'provider' 
+  router_name: 
+    type: string
+    description: The name of shared router between clusters
+    default: 'k8snets_router'
+
+resources:
+  # 创建虚拟网络
+  k8snet02:
+    type: OS::Neutron::Net
+    properties:
+      name: k8snet02
+
+  # 创建虚拟子网
+  k8snet02_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: k8snet02 }
+      name: k8snet02_subnet
+      cidr: "192.168.20.0/24"
+      # 接入到路由器上的子网，必须配置网关IP
+      gateway_ip: "192.168.20.254"
+      dns_nameservers: [ "114.114.114.114", "223.5.5.5", "8.8.8.8" ]
+      allocation_pools:
+      - {start: "192.168.20.2", end: "192.168.20.200"}
+      ip_version: 4  
+
+  # 创建路由器专用的接口，该接口将自动使用子网的网关地址
+  # 路由器将连接至指定的目标subnet
+  k8snets_router_interface_k8snet02:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_param: router_name }
+      subnet: { get_resource: k8snet02_subnet }   
+
+  # 创建安全组，并开放所有的入向流量
+  # 安全起见，将来应该修订其规则
+  k8scluster02_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: k8scluster02_security_group
+      rules:
+        - direction: ingress
+          ethertype: IPv4
+          remote_mode: remote_ip_prefix
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          ethertype: IPv4
+          remote_mode: remote_group_id
+        - direction: ingress
+          ethertype: IPv6
+          remote_mode: remote_group_id
+
+  # 为各实例准备的专用Floating IP
+  master01_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: external_network_id }
+
+  node01_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: external_network_id }
+
+  node02_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: external_network_id } 
+
+  # 为实例创建专用接口，以便于在实例上为其关联Floating IP
+  master01_port:
+    type: OS::Neutron::Port
+    depends_on: [ "k8snet02", "k8snet02_subnet" ]
+    properties:
+      network_id: { get_resource: k8snet02 }
+      fixed_ips:
+        - subnet: { get_resource: k8snet02_subnet }
+          ip_address: "192.168.20.6"
+      security_groups: [{ get_resource: "k8scluster02_security_group" }]
+
+  node01_port:
+    type: OS::Neutron::Port
+    depends_on: [ "k8snet02", "k8snet02_subnet" ]
+    properties:
+      network_id: { get_resource: k8snet02 }
+      fixed_ips:
+        - subnet: { get_resource: k8snet02_subnet }
+          ip_address: "192.168.20.11"
+      security_groups: [{ get_resource: "k8scluster02_security_group" }]
+
+  node02_port:
+    type: OS::Neutron::Port
+    depends_on: [ "k8snet02", "k8snet02_subnet" ]
+    properties:
+      network_id: { get_resource: k8snet02 }
+      fixed_ips:
+        - subnet: { get_resource: k8snet02_subnet }
+          ip_address: "192.168.20.12"
+      security_groups: [{ get_resource: "k8scluster02_security_group" }]
+
+  # 创建master01实例
+  instace_k8s_master01:
+    type: OS::Nova::Server
+    depends_on: ["master01_port"]
+    properties:
+      name: c02-master01
+      key_name: { get_param: key_name }
+      image: { get_param: image_id }
+      flavor: { get_param: master_nodes_flavor }
+      networks:
+      - port: { get_resource: master01_port }
+        floating_ip: { get_resource: master01_floating_ip }
+     
+  # 创建node01实例
+  instace_k8s_node01:
+    type: OS::Nova::Server
+    depends_on: ["node01_port"]
+    properties:
+      name: c02-node01
+      key_name: { get_param: key_name }
+      image: { get_param: image_id }
+      flavor: { get_param: worker_nodes_flavor }
+      networks:
+      - port: { get_resource: node01_port }
+        floating_ip: { get_resource: node01_floating_ip }
+   
+  # 创建node02实例
+  instace_k8s_node02:
+    type: OS::Nova::Server
+    depends_on: ["node02_port"]
+    properties:
+      name: c02-node02
+      key_name: { get_param: key_name }
+      image: { get_param: image_id }
+      flavor: { get_param: worker_nodes_flavor }
+      networks:
+      - port: { get_resource: node02_port }
+        floating_ip: { get_resource: node02_floating_ip }      
