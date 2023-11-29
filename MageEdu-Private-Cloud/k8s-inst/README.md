@@ -1,5 +1,12 @@
 # 部署Kubernetes集群
 
+本文档给出两种初始化集群的方式：
+
+- 手动创建Kubernetes集群；
+- 结合OpenStack Heat模板和集群初始化脚本自动化创建Kubernetes集群；
+
+## 手动创建Kubernetes集群
+
 前提：
 
 1. 为各节点确定要使用的主机名，对应修改各主机的主机名，并在各节点通过/etc/hosts文件设置其名称解析；
@@ -68,7 +75,45 @@ docker image tag registry.magedu.com/google_containers/pause:3.9  registry.k8s.i
 
 待如上两个命令运行结束后，再运行kubeadm join命令。需要提醒的是，如果使用了cri-dockerd和docker-ce作为CRI的实现，需要在kubeadm join命令上附加“--cri-socket unix:///run/cri-dockerd.sock”选项。
 
-### 维护操作
+## 自动部署Kubernetes集群
+
+在马哥教育的私有云实验上，该部署方式主要由两个步骤组成。
+
+### 初始化主机环境
+
+基于OpenStack Heat模板文件，在马哥教育的私有云上，基于“资源编排”创建“堆栈”，导入如下之一的预置模板文件，即可快速初始化出由一个Master和三个Worker组成的集群环境。
+
+- MageEdu-Private-Cloud/openstack-heat-templates/cluster-base-env-floatingip.tmpl
+- MageEdu-Private-Cloud/openstack-heat-templates/cluster-base-env.tmpl
+
+待“堆栈”初始化完成后，它会自动创建如下的主机环境：
+
+- 网络：192.168.10.0/24
+- Master节点：192.168.10.6，主机名k8s-master01，事先安装了v1.27.3版本的kubeadm、kubectl和kubelet，以及docker和cri-dockerd；
+- 三个Worker Nodes主机：
+  - 分别为k8s-node01（192.168.10.11）、k8s-node02（192.168.10.12）和k8s-node03（192.168.10.13）
+  - 各主机事先安装了v1.27.3版本的kubeadm、kubectl和kubelet，以及docker和cri-dockerd；
+
+### 部署单控制平面的集群
+
+cluster_init_script目录下的脚本文件cluster-init.sh，能够根据用户指定的Master主机地址和Worker主机地址，自动初始化出Kubernetes集群控制平面，并将各Worker主机加入到该集群中。
+
+该脚本需要在控制平面的第一个主机上以root用户的身份运行。
+
+```bash
+bash cluster-init.sh
+```
+
+
+
+待加入的功能（即目前尚不支持的功能）：
+
+- 安装指定版本的Kubernetes；目前默认安装的版本为v1.27.3；
+- 自动添加控制平面的其它节点；
+- 部署必要的各附件，例如csi-driver-nfs、ingress-nginx、metrics-server和dashboard等；
+- ...
+
+## 拆除集群
 
 重置集群节点（危险操作，请谨慎执行）。
 
