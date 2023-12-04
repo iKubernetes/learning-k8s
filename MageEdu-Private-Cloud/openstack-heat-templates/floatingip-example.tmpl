@@ -12,18 +12,16 @@ parameters:
     type: string
     label: Image ID
     description: Image to be used for compute instance
-    default: 'ubuntu-22.04-with-kubeadm-amd64'
-  
+    default: 'ubuntu-22.04-server-amd64'
   external_network_id:
     type: string
     description: External Network Name
     default: 'provider'
-    
   instance_type:
     type: string
     label: Instance Type
     description: Type of instance (flavor) to be used
-    default: 'm2.c4r8d40'
+    default: 'm2.c2r4d30'
 
 resources:
   k8snet01:
