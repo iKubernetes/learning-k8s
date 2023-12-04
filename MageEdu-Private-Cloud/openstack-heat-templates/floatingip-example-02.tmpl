@@ -68,11 +68,11 @@ resources:
           ip_address: "172.30.10.6"
       security_groups: ["default"]
 
-  my_instace_01:
+  myserver01:
     type: OS::Nova::Server
     properties:
       # 指定主机名
-      name: k8s-master01
+      #name: myserver01
       key_name: { get_param: key_name }
       image: { get_param: image_id }
       flavor: { get_param: instance_type }
