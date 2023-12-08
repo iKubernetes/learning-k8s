@@ -1,11 +1,12 @@
 #!/bin/bash
 #
 # 定义控制平面节点和工作节点数组，每个主机元素的格式为“主机名:IP地址“
-MasterNodes=('k8s-master01:192.168.10.6')
-WorkerNodes=('k8s-node01:192.168.10.11' 'k8s-node02:192.168.10.12' 'k8s-node03:192.168.10.13')
+MasterNodes=('c02-master01:192.168.20.6')
+WorkerNodes=('c02-node01:192.168.20.11' 'c02-node02:192.168.20.12')
+
+KubeAPIEndpoint="c02-kubeapi.${DomainName}"
 
 DomainName='magedu.com'
-KubeAPIEndpoint="k8s-kubeapi.${DomainName}"
 KubeAPIEndpointIP="$(echo ${MasterNodes[0]} | cut -d: -f2)"
 KubeMaster01="$(echo ${MasterNodes[0]} | cut -d: -f1).${DomainName}"
 
@@ -52,6 +53,9 @@ generate_kubeadm_init_config() {
 }
 
 init_cluster_control_plane() {
+  # reset cluster
+  kubeadm reset -f --cri-socket unix:///var/run/cri-dockerd.sock
+  rm -rf /etc/kubernetes/ /var/lib/kubelet /var/lib/dockershim /var/run/kubernetes /var/lib/cni /etc/cni/net.d /var/lib/etcd /run/flannel/
   # init cluster control plane
   kubeadm init --config ./kubeadm-init-config.yaml --upload-certs
 
@@ -76,6 +80,8 @@ join_worker_nodes() {
     scp /etc/hosts ${NodeIP}:/etc/hosts
     ssh ${NodeIP} "docker image pull registry.magedu.com/google_containers/pause:3.9 && \
       docker image tag registry.magedu.com/google_containers/pause:3.9 registry.k8s.io/pause:3.6 && \
+      kubeadm reset -f --cri-socket unix:///var/run/cri-dockerd.sock && \
+      rm -rf /etc/kubernetes/ /var/lib/kubelet /var/lib/dockershim /var/run/kubernetes /var/lib/cni /etc/cni/net.d /var/lib/etcd /run/flannel/ && \
       $JoinCommand --cri-socket unix:///var/run/cri-dockerd.sock"      
   done
 }
