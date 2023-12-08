@@ -1,12 +1,12 @@
 #!/bin/bash
 #
 # 定义控制平面节点和工作节点数组，每个主机元素的格式为“主机名:IP地址“
-MasterNodes=('c02-master01:192.168.20.6')
-WorkerNodes=('c02-node01:192.168.20.11' 'c02-node02:192.168.20.12')
-
-KubeAPIEndpoint="c02-kubeapi.${DomainName}"
+MasterNodes=('k8s-master01:192.168.10.6')
+WorkerNodes=('k8s-node01:192.168.10.11' 'k8s-node02:192.168.10.12')
 
 DomainName='magedu.com'
+KubeAPIEndpoint="k8s-kubeapi.${DomainName}"
+
 KubeAPIEndpointIP="$(echo ${MasterNodes[0]} | cut -d: -f2)"
 KubeMaster01="$(echo ${MasterNodes[0]} | cut -d: -f1).${DomainName}"
 
