@@ -38,6 +38,7 @@ tag_pause_image() {
 generate_kubeadm_init_config() {
   echo "generate kubeadm init configure file..."
   set -a
+  # 如果需要以IP地址的方式访问API Server，将下面赋值表达式中的变量修改为${KubeAPIEndpointIP}即可
   K8S_API_ENDPOINT=${KubeAPIEndpoint}
   K8S_API_ADDVERTISE_IP=${KubeAPIEndpointIP}
   K8S_MASTER01_HOSTNAME=${KubeMaster01}
