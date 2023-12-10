@@ -1,0 +1,17 @@
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: propagationpolicy-demo
+spec:
+  resourceSelectors:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: demoapp
+  placement:
+    clusterAffinity:
+      clusterNames:
+      # 分发到的目标集群的名称列表
+        - kube02
+        - kube03
+  propagateDeps: true
+  # 自动分发依赖到的其它资源对象

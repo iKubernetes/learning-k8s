@@ -1,0 +1,46 @@
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: propagationpolicy-failover-demo
+spec:
+  failover:
+    application:
+      decisionConditions:
+        tolerationSeconds: 60
+        # 触发故障转移的条件
+      gracePeriodSeconds: 120
+      # 宽限期
+      purgeMode: Graciously
+      # 驱逐模式,Graciously表示等待应用在新集群上转为健康状态或者超时后才驱逐应用，
+      # 超时时长由gracePeriodSeconds字段定义
+  resourceSelectors:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: demoapp
+  placement:
+    clusterTolerations:
+    - effect: NoExecute
+      key: cluster.karmada.io/not-ready
+      operator: Exists
+      tolerationSeconds: 60
+    - effect: NoExecute
+      key: cluster.karmada.io/unreachable
+      operator: Exists
+      tolerationSeconds: 60
+    replicaScheduling:
+      replicaDivisionPreference: Weighted
+      replicaSchedulingType: Divided
+      # 基于权重将应用的副本分散至多个集群中
+      weightPreference:
+        staticWeightList:
+          - targetCluster:
+              clusterNames:
+                - kube02
+            weight: 3
+          - targetCluster:
+              clusterNames:
+                - kube03
+            weight: 1
+        # 使用为集群指定的静态权重
+  propagateDeps: true
+  # 自动分发依赖到的其它资源对象

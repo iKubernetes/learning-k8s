@@ -1,0 +1,25 @@
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: propagationpolicy-ha-demo
+spec:
+  resourceSelectors:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: demoapp
+  placement:
+    replicaScheduling:
+      replicaSchedulingType: Duplicated  
+      # 副本调度使用复制模式
+    spreadConstraints:
+      - spreadByField: region
+        maxGroups: 2
+        minGroups: 2
+        # 要分散至多少个Region中部署应用
+      - spreadByField: cluster
+        maxGroups: 1
+        minGroups: 1
+        # 定义spreadByField策略时,必须启用基于cluster的分发
+        # 该处的配置表示,在每个Region内,只需要分发应用部署到一个cluster中即可;
+  propagateDeps: true
+  # 自动分发依赖到的其它资源对象

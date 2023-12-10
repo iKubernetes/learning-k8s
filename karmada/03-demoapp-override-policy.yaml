@@ -1,0 +1,22 @@
+apiVersion: policy.karmada.io/v1alpha1
+kind: OverridePolicy
+metadata:
+  name: overridepolicy-demo
+spec:
+  resourceSelectors:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: demoapp
+    # 存在非空name字段时,labelSelector字段将被自动忽略;
+    labelSelector: 
+      matchLabels:
+        app: demoapp
+  overrideRules:
+  - overriders:
+      imageOverrider:
+      - component: Tag
+        operator: replace
+        value: 'v1.1'
+    targetCluster:
+      clusterNames: 
+      - kube03
