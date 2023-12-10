@@ -1,3 +1,6 @@
+# Maintainer: MageEdu <mage@magedu.com>
+# Date: 2023-12-10 17:38:00
+#
 apiVersion: policy.karmada.io/v1alpha1
 kind: PropagationPolicy
 metadata:
