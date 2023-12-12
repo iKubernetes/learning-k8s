@@ -1,0 +1,67 @@
+# Maintainer: MageEdu <mage@magedu.com>
+#
+- hosts: all
+  tasks:
+  - name: Reset all kubeadm state
+    become: true
+    command: "{{ item }}"
+    with_items:
+    - kubeadm reset -f
+    - rm -rf /etc/cni/net.d
+    - rm -rf "$HOME/.kube" /etc/kubernetes/ /var/lib/kubelet /var/lib/dockershim /var/run/kubernetes /var/lib/cni /var/lib/etcd
+
+- hosts: master
+  vars:
+    pod_cidr: "10.244.0.0/16"
+    service_cidr: "10.96.0.0/12"
+    mode: "tunneling"
+    version: "v1.28.2"
+    image_repo: "registry.aliyuncs.com/google_containers"
+
+  tasks:
+  - name: Initialize the Kubernetes cluster with kube-proxy
+    become: true
+    command: kubeadm init --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }}  --kubernetes-version={{ version }}
+
+  - name: Setup kubeconfig
+    command: "{{ item }}"
+    with_items:
+     - mkdir -p "$HOME/.kube"
+     - sudo cp /etc/kubernetes/admin.conf "$HOME/.kube/config"
+
+  # Copy Flannel Config File
+  - name: Copy the kube-flannel.yml
+    ansible.builtin.copy:
+      src: kube-flannel.yml
+      dest: ./kube-flannel.yml
+
+  - name: Patch flannel file
+    shell: |
+      PODCIDR="{{ pod_cidr }}"
+      sed -i -e "s@10.244.0.0/16@$PODCIDR@" ./kube-flannel.yml
+
+  - name: Configure flannel to use host gateway datapath
+    shell: |
+      PODCIDR="{{ pod_cidr }}"
+      sed -i.orig -e "s@(\"Type\": )\"vxlan\"@\1\"host-gw\"@" ./kube-flannel.yml
+    when: mode == "routing"
+
+  - name: Install Flannel
+    shell: |
+      kubectl apply -f ./kube-flannel.yml
+
+  - name: Generate the kubeadm join command
+    command: kubeadm token create --print-join-command
+    register: join_command
+
+  - name: Copy the kubeadm join command to a local file
+    local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+- hosts: nodes
+  become: true
+  tasks:
+  - name: Copy the kubadm join command to the node
+    copy: src=join-command dest=/tmp/join-command.sh mode=0777
+
+  - name: Join the node to the cluster
+    command: sh /tmp/join-command.sh

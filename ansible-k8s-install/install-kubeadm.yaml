@@ -1,0 +1,113 @@
+- hosts: all
+  become: true
+  vars:
+    version: "1.28.2-00"
+  tasks:
+  - name: Install packages that allow apt to be used over HTTPS
+    apt:
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+
+  - name: Add the apt signing key for Docker
+    apt_key:
+      url: https://mirrors.huaweicloud.com/docker-ce/linux/ubuntu/gpg
+      state: present
+
+  - name: Add the apt repository for the stable Docker version
+    apt_repository:
+      repo: deb [arch=amd64] https://mirrors.huaweicloud.com/docker-ce/linux/ubuntu jammy stable
+      state: present
+
+  - name: Install Docker and its dependencies
+    apt:
+      name: "{{ packages }}"
+      #state: present
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    notify:
+      - docker status
+
+  - name: Copy containerd config file with owner and permissions
+    ansible.builtin.copy:
+      src: files/containerd-config.toml
+      dest: /etc/containerd/config.toml
+      owner: root
+      group: root
+      mode: '0640'
+    register: containerdconfig
+
+  - name: Restart containerd.io
+    service:
+      name: containerd
+      daemon_reload: yes
+      state: restarted
+    when: containerdconfig.changed
+
+  - name: Copy crictl config file with owner and permissions
+    ansible.builtin.copy:
+      src: files/crictl.yaml
+      dest: /etc/crictl.yaml
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Remove swapfile from /etc/fstab
+    mount:
+      name: "{{ item }}"
+      fstype: swap
+      state: absent
+    with_items:
+      - swap
+      - none
+
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb > 0
+
+  - name: Add the apt signing key for Kubernetes
+    apt_key:
+      url: https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg
+      state: present
+
+  - name: Add the apt repository for Kubernetes
+    apt_repository:
+      repo: deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main
+      state: present
+      filename: kubernetes.list
+
+  - name: Install Kubernetes binaries
+    apt:
+      name: "{{ packages }}"
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet={{ version }}
+        - kubeadm={{ version }}
+        - kubectl={{ version }}
+
+  - name: Configure --node-ip for kubelet
+    lineinfile:
+      path: /etc/default/kubelet
+      regexp: "^KUBELET_EXTRA_ARGS=.*--node-ip="
+      line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
+      create: yes
+    register: kubeletconfig
+
+  - name: Restart kubelet
+    service:
+      name: kubelet
+      daemon_reload: yes
+      state: restarted
+    when: kubeletconfig.changed

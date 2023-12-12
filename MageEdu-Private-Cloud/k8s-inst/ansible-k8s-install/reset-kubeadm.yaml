@@ -1,0 +1,16 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Reset all kubeadm state
+      command: "{{ item }}"
+      with_items:
+      - kubeadm reset -f
+      - rm -rf /etc/cni/net.d
+      - rm -rf "$HOME/.kube" /etc/kubernetes/ /var/lib/kubelet /var/lib/dockershim /var/run/kubernetes /var/lib/cni /var/lib/etcd
+
+    # This is to reset:
+    # - mtu changes (we could store the original values or always set one)
+    # - bpf programms (we could call cilium cleanup)
+    - name: Reboot
+      reboot:
