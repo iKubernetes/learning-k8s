@@ -87,21 +87,25 @@ resources:
   # 为各实例准备的专用Floating IP
   master01_floating_ip:
     type: OS::Neutron::FloatingIP
+    depends_on: [ {get_resource: "k8snets_router"} ]
     properties:
       floating_network: { get_param: external_network_id }
 
   node01_floating_ip:
     type: OS::Neutron::FloatingIP
+    depends_on: [ {get_resource: "k8snets_router"} ]
     properties:
       floating_network: { get_param: external_network_id }
 
   node02_floating_ip:
     type: OS::Neutron::FloatingIP
+    depends_on: [ {get_resource: "k8snets_router"} ]
     properties:
       floating_network: { get_param: external_network_id }
 
   node03_floating_ip:
     type: OS::Neutron::FloatingIP
+    depends_on: [ {get_resource: "k8snets_router"} ]
     properties:
       floating_network: { get_param: external_network_id }      
 
