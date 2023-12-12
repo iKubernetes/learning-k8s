@@ -1,5 +1,10 @@
 #!/bin/bash
 #
+MASTER_IP='192.168.10.6'
+NODE_01_IP='192.168.10.11'
+NODE_02_IP='192.168.10.12'
+NODE_03_IP='192.168.10.13'
+
 # install ansible
 sudo apt-add-repository -y ppa:ansible/ansible
 sudo apt update
