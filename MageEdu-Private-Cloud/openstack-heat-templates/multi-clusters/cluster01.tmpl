@@ -106,7 +106,7 @@ resources:
   # 为实例创建专用接口，以便于在实例上为其关联Floating IP
   master01_port:
     type: OS::Neutron::Port
-    depends_on: [ "k8snet01", "k8snet01_subnet" ]
+    depends_on: [ "k8snets_router", "k8snet01", "k8snet01_subnet" ]
     properties:
       network_id: { get_resource: k8snet01 }
       fixed_ips:
@@ -116,7 +116,7 @@ resources:
 
   node01_port:
     type: OS::Neutron::Port
-    depends_on: [ "k8snet01", "k8snet01_subnet" ]
+    depends_on: [ "k8snets_router", "k8snet01", "k8snet01_subnet" ]
     properties:
       network_id: { get_resource: k8snet01 }
       fixed_ips:
@@ -126,7 +126,7 @@ resources:
 
   node02_port:
     type: OS::Neutron::Port
-    depends_on: [ "k8snet01", "k8snet01_subnet" ]
+    depends_on: [ "k8snets_router", "k8snet01", "k8snet01_subnet" ]
     properties:
       network_id: { get_resource: k8snet01 }
       fixed_ips:
