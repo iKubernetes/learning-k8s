@@ -1,0 +1,85 @@
+# Maintainer: MageEdu <mage@magedu.com>
+#
+- hosts: all
+  tasks:
+  - name: Reset all kubeadm state
+    become: true
+    command: "{{ item }}"
+    with_items:
+    - kubeadm reset -f
+    - rm -rf /etc/cni/net.d
+
+- hosts: master
+  vars:
+    k8s_version: "v1.28.2"
+    pod_cidr: "10.244.0.0/16"
+    pod_cidr_block_size: "24"
+    service_cidr: "10.96.0.0/12"
+    # mode: routing, tunneling
+    mode: "tunneling"
+    # tunnel protocol: IPIP, VXLAN
+    tunnel_protocol: "IPIP"
+    image_repo: "registry.aliyuncs.com/google_containers"
+
+  tasks:
+  - name: Initialize the Kubernetes cluster with kube-proxy
+    become: true
+    command: kubeadm init --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }}  --kubernetes-version={{ k8s_version }}
+
+  - name: Setup kubeconfig
+    command: "{{ item }}"
+    with_items:
+     - mkdir -p "$HOME/.kube"
+     - sudo cp /etc/kubernetes/admin.conf "$HOME/.kube/config"
+
+  # Copy calico manifest file
+  - name: Copy the calico.yaml
+    ansible.builtin.copy:
+      src: calico.yaml
+      dest: ./calico.yaml
+
+  - name: Patch calico file
+    shell: |
+      PODCIDR="{{ pod_cidr }}"
+      PODCIDRBLOCK="{{ pod_cidr_block_size }}"
+      sed -i -e "/CALICO_IPV4POOL_CIDR/{n;s@value.*@value: \"$PODCIDR\"@gi}" -e "/CALICO_IPV4POOL_BLOCK_SIZE/{n;s@value.*@value: \"$PODCIDRBLOCK\"@gi}" ./calico.yaml
+
+  - name: Configure calico to use bgp routing and ipip tunneling
+    shell: |
+      sed -i -e '/CALICO_IPV4POOL_IPIP/{n;s@value.*@value: "Cross-Subnet"@gi}' -e '/CALICO_IPV4POOL_VXLAN/{n;s@value.*@value: "Never"@gi}' ./calico.yaml
+    when: mode == "routing" and tunnel_protocol == "IPIP"
+
+  - name: Configure calico to use bgp routing and vxlan tunneling
+    shell: |
+      sed -i -e '/CALICO_IPV4POOL_VXLAN/{n;s@value.*@value: "Cross-Subnet"@gi}' -e '/CALICO_IPV4POOL_IPIP/{n;s@value.*@value: "Never"@gi}' ./calico.yaml
+    when: mode == "routing" and tunnel_protocol == "VXLAN"
+
+  - name: Configure calico to use vxlan tunneling
+    shell: |
+      sed -i -e '/CALICO_IPV4POOL_VXLAN/{n;s@value.*@value: "Always"@gi}' -e '/CALICO_IPV4POOL_IPIP/{n;s@value.*@value: "Never"@gi}' ./calico.yaml
+    when: mode == "tunneling" and tunnel_protocol == "VXLAN"
+
+  - name: Configure calico to use ipip tunneling
+    shell: |
+      sed -i -e '/CALICO_IPV4POOL_IPIP/{n;s@value.*@value: "Always"@gi}' -e '/CALICO_IPV4POOL_VXLAN/{n;s@value.*@value: "Never"@gi}' ./calico.yaml
+    when: mode == "tunneling" and tunnel_protocol == "IPIP"
+
+  - name: Install Calico
+    shell: |
+      kubectl apply -f ./calico.yaml
+
+  - name: Generate the kubeadm join command
+    command: kubeadm token create --print-join-command
+    register: join_command
+
+  - name: Copy the kubeadm join command to a local file
+    local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+- hosts: nodes
+  become: true
+  tasks:
+  - name: Copy the kubadm join command to the node
+    copy: src=join-command dest=/tmp/join-command.sh mode=0777
+
+  - name: Join the node to the cluster
+    command: sh /tmp/join-command.sh
