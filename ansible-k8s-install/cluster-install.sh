@@ -25,4 +25,4 @@ EOF
 ansible-playbook install-kubeadm.yaml
 
 # create kubernetes cluster control plane and add work nodes
-ansible-playboot install-k8s-flannel.yaml
+ansible-playbook install-k8s-flannel.yaml
