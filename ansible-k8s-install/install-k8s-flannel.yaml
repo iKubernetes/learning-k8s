@@ -8,7 +8,6 @@
     with_items:
     - kubeadm reset -f
     - rm -rf /etc/cni/net.d
-    - rm -rf "$HOME/.kube" /etc/kubernetes/ /var/lib/kubelet /var/lib/dockershim /var/run/kubernetes /var/lib/cni /var/lib/etcd
 
 - hosts: master
   vars:
@@ -43,7 +42,7 @@
   - name: Configure flannel to use host gateway datapath
     shell: |
       PODCIDR="{{ pod_cidr }}"
-      sed -i.orig -e "s@(\"Type\": )\"vxlan\"@\1\"host-gw\"@" ./kube-flannel.yml
+      sed -i -e "s@vxlan@host-gw@" ./kube-flannel.yml
     when: mode == "routing"
 
   - name: Install Flannel

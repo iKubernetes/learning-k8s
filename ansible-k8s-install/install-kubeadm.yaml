@@ -111,3 +111,8 @@
       daemon_reload: yes
       state: restarted
     when: kubeletconfig.changed
+
+  handlers:
+    - name: docker status
+      service: name=docker state=started
+

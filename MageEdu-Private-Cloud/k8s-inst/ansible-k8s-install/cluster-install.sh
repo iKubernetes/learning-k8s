@@ -8,7 +8,7 @@ NODE_03_IP='192.168.10.13'
 # install ansible
 sudo apt-add-repository -y ppa:ansible/ansible
 sudo apt update
-sudo apt install ansible
+sudo apt install -y ansible
 
 # generate ansible iventory hosts
 cat <<EOF >> /etc/ansible/hosts

@@ -1,0 +1,151 @@
+# Maintainer: MageEdu <mage@magedu.com>
+#
+- hosts: all
+  tasks:
+  - name: Reset all kubeadm state
+    become: true
+    command: "{{ item }}"
+    with_items:
+     - kubeadm reset -f
+     - rm -rf /etc/cni/net.d/
+
+  # not sure what the actual issue is here, need to investigate deeper
+  #- name: Reinstall docker and friends
+  #  shell: "{{ item }}"
+  #  args:
+  #    warn: false
+  #  with_items:
+  #     - apt-get -y remove --purge docker-ce docker-ce-rootless-extras  docker-ce-cli containerd.io
+  #     - apt autoremove
+  #     - apt-get -y install docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io
+
+- hosts: master
+  vars:
+    pod_cidr: "10.244.0.0/16"
+    service_cidr: "10.96.0.0/12"
+    kubeproxyfree: "strict"
+    # modes: tunneling, directrouting
+    mode: "tunneling"
+    #encryption: no, ipsec, wireguard
+    encryption: "no"
+    host_routing: "legacy"
+    hubble: "true"
+    hubble_ui: "true"
+    hubble_relay: "true"
+    hubble_prometheus: "true"
+    image_repo: "registry.magedu.com/google_containers"
+    cilium_cli_version: "v0.15.17"
+    download_cilium_cli: 'yes'
+
+  tasks:
+  - name: Initialize the Kubernetes cluster with kube-proxy
+    become: true
+    command: kubeadm init --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }}
+    when: (kubeproxyfree is defined and kubeproxyfree == "disabled") or encryption == "ipsec"
+
+  - name: Initialize the Kubernetes cluster without kube-proxy
+    become: true
+    command: kubeadm init --pod-network-cidr={{ pod_cidr }} --skip-phases=addon/kube-proxy --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }}
+    when: kubeproxyfree is not defined or kubeproxyfree != "disabled"
+
+  - name: Setup kubeconfig
+    command: "{{ item }}"
+    with_items:
+     - mkdir -p "$HOME/.kube"
+     - sudo cp /etc/kubernetes/admin.conf "$HOME/.kube/config"
+
+  - name: Download and unarchive cilium-cli
+    ansible.builtin.unarchive:
+      src: https://mirror.ghproxy.com/https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version }}/cilium-linux-amd64.tar.gz
+      dest: /usr/local/bin
+      remote_src: yes
+    when: download_cilium_cli == 'yes'
+
+  - name: Install Cilium in direct-routing mode
+    ansible.builtin.shell: |
+      cilium install \
+      --namespace kube-system \
+      --set k8sServiceHost={{ node_ip }} \
+      --set k8sServicePort=6443 \
+      --set ipam.mode=kubernetes \
+      --set kubeProxyReplacement={{ kubeproxyfree | default("strict") }} \
+      --set routingMode=native \
+      --set ipv4NativeRoutingCIDR={{ pod_cidr }} \
+      --set autoDirectNodeRoutes=true \
+      --set bpf.hostRouting={{ "true" if host_routing == "legacy" else "false" }} \
+      --set tunnel=disabled \
+      --set hubble.enabled={{ hubble }} \
+      --set hubble.ui.enabled={{ hubble_ui }} \
+      --set hubble.relay.enabled={{ hubble_relay }} \
+      --set prometheus.enabled={{ hubble_prometheus }}
+    when: mode == "directrouting" and encryption == "no"
+
+  - name: Install Cilium in VXLAN tunneling mode
+    ansible.builtin.shell: |
+      cilium install \
+      --namespace kube-system \
+      --set k8sServiceHost={{ node_ip }} \
+      --set k8sServicePort=6443 \
+      --set ipam.mode=kubernetes \
+      --set kubeProxyReplacement={{ kubeproxyfree | default("strict") }} \
+      --set hubble.enabled={{ hubble }} \
+      --set hubble.ui.enabled={{ hubble_ui }} \
+      --set hubble.relay.enabled={{ hubble_relay }} \
+      --set prometheus.enabled={{ hubble_prometheus }}
+    when: mode == "tunneling" and encryption == "no"
+
+  - name: Generate keys
+    script: ../scripts/cilium-gen-keys.sh
+    when: encryption == "ipsec"
+
+  # TODO: fix hardcoding of interface here
+  - name: Install Cilium using IPSec Encryption in direct routing mode
+    ansible.builtin.shell: |
+      cilium install \
+      --namespace kube-system \
+      --set k8sServiceHost={{ node_ip }} \
+      --set k8sServicePort=6443 \
+      --set ipam.mode=kubernetes \
+      --set kubeProxyReplacement=disabled \
+      --set nativeRoutingCIDR={{ pod_cidr }} \
+      --set autoDirectNodeRoutes=true \
+      --set tunnel=disabled \
+      --set hubble.enabled={{ hubble }} \
+      --set encryption.enabled=true \
+      --set encryption.nodeEncryption=false \
+      --set encryption.interface=ens3
+    when: encryption == "ipsec" and mode == "directrouting"
+
+  # TODO: fix hardcoding of interface here
+  - name: Install Cilium using Wireguard Encryption in direct routing mode
+    ansible.builtin.shell: |
+      cilium install \
+      --namespace kube-system \
+      --set k8sServiceHost={{ node_ip }} \
+      --set k8sServicePort=6443 \
+      --set ipam.mode=kubernetes \
+      --set kubeProxyReplacement={{ kubeproxyfree | default("strict") }} \
+      --set nativeRoutingCIDR={{ pod_cidr }} \
+      --set autoDirectNodeRoutes=true \
+      --set tunnel=disabled \
+      --set hubble.enabled={{ hubble }} \
+      --set encryption.enabled=true \
+      --set encryption.type=wireguard \
+      --set l7Proxy=false
+    when: encryption == "wireguard" and mode == "directrouting"
+
+  - name: Generate the kubeadm join command
+    command: kubeadm token create --print-join-command
+    register: join_command
+
+  - name: Copy the kubeadm join command to a local file
+    local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+- hosts: nodes
+  become: true
+  tasks:
+  - name: Copy the kubadm join command to the node
+    copy: src=join-command dest=/tmp/join-command.sh mode=0777
+
+  - name: Join the node to the cluster
+    command: sh /tmp/join-command.sh
