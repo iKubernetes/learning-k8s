@@ -40,23 +40,23 @@
   - name: Patch flannel file
     shell: |
       PODCIDR="{{ pod_cidr }}"
-      sed -i -e "s@\"Network\": .*@\"Network\": \"$PODCIDR\",@gi" ./kube-flannel.yml
+      sed -i -e "s@\"Network\": .*@\"Network\": \"$PODCIDR\",@g" ./kube-flannel.yml
 
   - name: Configure flannel to use host gateway datapath
     shell: |
       PODCIDR="{{ pod_cidr }}"
-      sed -i -e "s@\"Type\": .*@\"Type\": \"host-gw\"@gi" ./kube-flannel.yml
+      sed -i -e "s@\"Type\": .*@\"Type\": \"host-gw\"@g" ./kube-flannel.yml
     when: mode == "routing"
 
   - name: Configure flannel to use vxlan tunneling
     shell: |
       PODCIDR="{{ pod_cidr }}"
-      sed -i -e "s@\"Type\": .*@\"Type\": \"vxlan\"@gi" ./kube-flannel.yml
+      sed -i -e "s@\"Type\": .*@\"Type\": \"vxlan\"@g" ./kube-flannel.yml
     when: mode == "tunneling" and tunnel_protocol == "vxlan" and vxlan_directrouting == "false"
 
   - name: Configure flannel to use vxlan tunneling and direct routing
     shell: |
-      sed -e 's@"Type": .*@"Type": "vxlan",@gi' -e '/"Type": "vxlan"/a\\t"DirectRouting": "true"' ./kube-flannel.yml
+      sed -e 's@"Type": .*@"Type": "vxlan",@g' -e '/"Type": "vxlan"/a\\t"DirectRouting": "true"' ./kube-flannel.yml
     when: mode == "tunneling" and tunnel_protocol == "vxlan" and vxlan_directrouting == "true"
 
   - name: Install Flannel

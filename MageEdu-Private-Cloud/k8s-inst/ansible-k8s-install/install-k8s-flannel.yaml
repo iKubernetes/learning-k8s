@@ -13,9 +13,12 @@
   vars:
     pod_cidr: "10.244.0.0/16"
     service_cidr: "10.96.0.0/12"
+    # mode: routing, tunneling
     mode: "tunneling"
+    tunnel_protocol: "vxlan"
+    vxlan_directrouting: "false"
     version: "v1.28.2"
-    image_repo: "registry.magedu.com/google_containers"
+    image_repo: "registry.aliyuncs.com/google_containers"
 
   tasks:
   - name: Initialize the Kubernetes cluster with kube-proxy
@@ -37,13 +40,24 @@
   - name: Patch flannel file
     shell: |
       PODCIDR="{{ pod_cidr }}"
-      sed -i -e "s@10.244.0.0/16@$PODCIDR@" ./kube-flannel.yml
+      sed -i -e "s@\"Network\": .*@\"Network\": \"$PODCIDR\",@g" ./kube-flannel.yml
 
   - name: Configure flannel to use host gateway datapath
     shell: |
       PODCIDR="{{ pod_cidr }}"
-      sed -i.orig -e "s@(\"Type\": )\"vxlan\"@\1\"host-gw\"@" ./kube-flannel.yml
+      sed -i -e "s@\"Type\": .*@\"Type\": \"host-gw\"@g" ./kube-flannel.yml
     when: mode == "routing"
+
+  - name: Configure flannel to use vxlan tunneling
+    shell: |
+      PODCIDR="{{ pod_cidr }}"
+      sed -i -e "s@\"Type\": .*@\"Type\": \"vxlan\"@g" ./kube-flannel.yml
+    when: mode == "tunneling" and tunnel_protocol == "vxlan" and vxlan_directrouting == "false"
+
+  - name: Configure flannel to use vxlan tunneling and direct routing
+    shell: |
+      sed -e 's@"Type": .*@"Type": "vxlan",@g' -e '/"Type": "vxlan"/a\\t"DirectRouting": "true"' ./kube-flannel.yml
+    when: mode == "tunneling" and tunnel_protocol == "vxlan" and vxlan_directrouting == "true"
 
   - name: Install Flannel
     shell: |
