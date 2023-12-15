@@ -23,6 +23,8 @@
   vars:
     pod_cidr: "10.244.0.0/16"
     service_cidr: "10.96.0.0/12"
+    cluster_name: "cluster01"
+    cluster_name: "1"
     kubeproxyfree: "strict"
     # modes: tunneling, directrouting
     mode: "tunneling"
@@ -33,7 +35,7 @@
     hubble_ui: "true"
     hubble_relay: "true"
     hubble_prometheus: "true"
-    image_repo: "registry.magedu.com/google_containers"
+    image_repo: "registry.aliyuncs.com/google_containers"
     cilium_cli_version: "v0.15.17"
     download_cilium_cli: 'yes'
 
@@ -67,6 +69,8 @@
       --namespace kube-system \
       --set k8sServiceHost={{ node_ip }} \
       --set k8sServicePort=6443 \
+      --set cluster.name={{ cluster_name }} \
+      --set cluster.id={{ cluster_id }} \
       --set ipam.mode=kubernetes \
       --set kubeProxyReplacement={{ kubeproxyfree | default("strict") }} \
       --set routingMode=native \
@@ -86,6 +90,8 @@
       --namespace kube-system \
       --set k8sServiceHost={{ node_ip }} \
       --set k8sServicePort=6443 \
+      --set cluster.name={{ cluster_name }} \
+      --set cluster.id={{ cluster_id }} \
       --set ipam.mode=kubernetes \
       --set kubeProxyReplacement={{ kubeproxyfree | default("strict") }} \
       --set hubble.enabled={{ hubble }} \
@@ -111,6 +117,9 @@
       --set autoDirectNodeRoutes=true \
       --set tunnel=disabled \
       --set hubble.enabled={{ hubble }} \
+      --set hubble.ui.enabled={{ hubble_ui }} \
+      --set hubble.relay.enabled={{ hubble_relay }} \
+      --set prometheus.enabled={{ hubble_prometheus }} \
       --set encryption.enabled=true \
       --set encryption.nodeEncryption=false \
       --set encryption.interface=ens3
@@ -129,6 +138,9 @@
       --set autoDirectNodeRoutes=true \
       --set tunnel=disabled \
       --set hubble.enabled={{ hubble }} \
+      --set hubble.ui.enabled={{ hubble_ui }} \
+      --set hubble.relay.enabled={{ hubble_relay }} \
+      --set prometheus.enabled={{ hubble_prometheus }} \
       --set encryption.enabled=true \
       --set encryption.type=wireguard \
       --set l7Proxy=false
