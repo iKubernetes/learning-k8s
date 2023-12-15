@@ -24,7 +24,7 @@
     pod_cidr: "10.244.0.0/16"
     service_cidr: "10.96.0.0/12"
     cluster_name: "cluster01"
-    cluster_name: "1"
+    cluster_id: "1"
     kubeproxyfree: "strict"
     # modes: tunneling, directrouting
     mode: "tunneling"

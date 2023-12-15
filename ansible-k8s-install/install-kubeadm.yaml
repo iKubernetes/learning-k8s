@@ -25,7 +25,7 @@
       repo: deb [arch=amd64] https://mirrors.huaweicloud.com/docker-ce/linux/ubuntu jammy stable
       state: present
 
-  - name: Install Docker and its dependencies
+  - name: Install Containerd and its dependencies
     apt:
       name: "{{ packages }}"
       #state: present
