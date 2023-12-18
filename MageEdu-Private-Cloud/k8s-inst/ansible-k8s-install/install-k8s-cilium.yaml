@@ -21,11 +21,15 @@
 
 - hosts: master
   vars:
+    k8s_version: "v1.28.2"
     pod_cidr: "10.244.0.0/16"
     service_cidr: "10.96.0.0/12"
     cluster_name: "cluster01"
     cluster_id: "1"
     kubeproxyfree: "strict"
+    ingress_controller_enabled: "true" 
+    # ingress_controller_mode: dedicated, shared
+    ingress_controller_mode: "dedicated"
     # modes: tunneling, directrouting
     mode: "tunneling"
     #encryption: no, ipsec, wireguard
@@ -35,19 +39,19 @@
     hubble_ui: "true"
     hubble_relay: "true"
     hubble_prometheus: "true"
-    image_repo: "registry.aliyuncs.com/google_containers"
+    image_repo: "registry.magedu.com/google_containers"
     cilium_cli_version: "v0.15.17"
     download_cilium_cli: 'yes'
 
   tasks:
   - name: Initialize the Kubernetes cluster with kube-proxy
     become: true
-    command: kubeadm init --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }}
+    command: kubeadm init --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }} --kubernetes-version={{ k8s_version }}
     when: (kubeproxyfree is defined and kubeproxyfree == "disabled") or encryption == "ipsec"
 
   - name: Initialize the Kubernetes cluster without kube-proxy
     become: true
-    command: kubeadm init --pod-network-cidr={{ pod_cidr }} --skip-phases=addon/kube-proxy --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }}
+    command: kubeadm init --pod-network-cidr={{ pod_cidr }} --skip-phases=addon/kube-proxy --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }} --kubernetes-version={{ k8s_version }}
     when: kubeproxyfree is not defined or kubeproxyfree != "disabled"
 
   - name: Setup kubeconfig
@@ -78,6 +82,8 @@
       --set autoDirectNodeRoutes=true \
       --set bpf.hostRouting={{ "true" if host_routing == "legacy" else "false" }} \
       --set tunnel=disabled \
+      --set ingressController.enabled={{ ingress_controller_enabled }} \
+      --set ngressController.loadbalancerMode={{ ingress_controller_mode }} \
       --set hubble.enabled={{ hubble }} \
       --set hubble.ui.enabled={{ hubble_ui }} \
       --set hubble.relay.enabled={{ hubble_relay }} \
@@ -94,6 +100,8 @@
       --set cluster.id={{ cluster_id }} \
       --set ipam.mode=kubernetes \
       --set kubeProxyReplacement={{ kubeproxyfree | default("strict") }} \
+      --set ingressController.enabled={{ ingress_controller_enabled }} \
+      --set ngressController.loadbalancerMode={{ ingress_controller_mode }} \
       --set hubble.enabled={{ hubble }} \
       --set hubble.ui.enabled={{ hubble_ui }} \
       --set hubble.relay.enabled={{ hubble_relay }} \

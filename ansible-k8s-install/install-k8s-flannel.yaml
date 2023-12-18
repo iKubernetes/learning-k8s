@@ -11,19 +11,19 @@
 
 - hosts: master
   vars:
+    k8s_version: "v1.28.2"
     pod_cidr: "10.244.0.0/16"
     service_cidr: "10.96.0.0/12"
     # mode: routing, tunneling
     mode: "tunneling"
     tunnel_protocol: "vxlan"
     vxlan_directrouting: "false"
-    version: "v1.28.2"
     image_repo: "registry.aliyuncs.com/google_containers"
 
   tasks:
   - name: Initialize the Kubernetes cluster with kube-proxy
     become: true
-    command: kubeadm init --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }}  --kubernetes-version={{ version }}
+    command: kubeadm init --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }}  --kubernetes-version={{ k8s_version }}
 
   - name: Setup kubeconfig
     command: "{{ item }}"
