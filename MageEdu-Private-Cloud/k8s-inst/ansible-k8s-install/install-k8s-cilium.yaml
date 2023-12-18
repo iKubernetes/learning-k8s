@@ -29,7 +29,7 @@
     kubeproxyfree: "strict"
     ingress_controller_enabled: "true" 
     # ingress_controller_mode: dedicated, shared
-    ingress_controller_mode: "dedicated"
+    ingress_controller_mode: "shared"
     # modes: tunneling, directrouting
     mode: "tunneling"
     #encryption: no, ipsec, wireguard
