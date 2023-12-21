@@ -41,6 +41,7 @@
     hubble_prometheus: "true"
     image_repo: "registry.magedu.com/google_containers"
     cilium_cli_version: "v0.15.17"
+    cilium_version: "v1.14.5"
     download_cilium_cli: 'yes'
 
   tasks:
@@ -70,6 +71,7 @@
   - name: Install Cilium in direct-routing mode
     ansible.builtin.shell: |
       cilium install \
+      --version {{ cilium_version }} \
       --namespace kube-system \
       --set k8sServiceHost={{ node_ip }} \
       --set k8sServicePort=6443 \
@@ -93,6 +95,7 @@
   - name: Install Cilium in VXLAN tunneling mode
     ansible.builtin.shell: |
       cilium install \
+      --version {{ cilium_version }} \
       --namespace kube-system \
       --set k8sServiceHost={{ node_ip }} \
       --set k8sServicePort=6443 \
@@ -116,6 +119,7 @@
   - name: Install Cilium using IPSec Encryption in direct routing mode
     ansible.builtin.shell: |
       cilium install \
+      --version {{ cilium_version }} \
       --namespace kube-system \
       --set k8sServiceHost={{ node_ip }} \
       --set k8sServicePort=6443 \
@@ -137,6 +141,7 @@
   - name: Install Cilium using Wireguard Encryption in direct routing mode
     ansible.builtin.shell: |
       cilium install \
+      --version {{ cilium_version }} \
       --namespace kube-system \
       --set k8sServiceHost={{ node_ip }} \
       --set k8sServicePort=6443 \
