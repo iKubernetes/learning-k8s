@@ -13,7 +13,7 @@ spec:
     imagePullPolicy: IfNotPresent
     startupProbe:
       exec:
-        command: ['/bin/sh','-c','test','"$(curl -s 127.0.0.1/livez)"=="OK"']
+        command: ['/bin/sh', '-c', '[ "$(/usr/bin/curl -s http://127.0.0.1/livez)" == "OK" ]']
       initialDelaySeconds: 0
       failureThreshold: 3
       periodSeconds: 5
