@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: redis
-    image: redis:6
+    image: redis:7-alpine
     imagePullPolicy: IfNotPresent
     volumeMounts:
     - name: redisdata
