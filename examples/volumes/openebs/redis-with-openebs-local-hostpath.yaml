@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-with-openebs-local-hostpath
+spec:
+  containers:
+  - name: redis
+    image: redis:7-alpine
+    ports:
+    - containerPort: 6379
+      name: redis
+    volumeMounts:
+    - mountPath: /data
+      name: local-storage
+  volumes:
+  - name: local-storage
+    persistentVolumeClaim:
+      claimName: openebs-local-hostpath-pvc
