@@ -111,6 +111,19 @@ demoapp   LoadBalancer   10.97.7.114   172.29.5.51   80:30072/TCP   8m
 
 随后，即可于集群外部的客户端上通过IP地址“172.29.5.51”对demoapp服务发起访问测试。
 
+### 故障排查
+
+因为Kubernetes版本等方面的原因，部署EIP资源时遇到类似如下错误信息。
+
+Error from server (InternalError): error when creating "eip-pool.yaml": Internal error occurred: failed calling webhook "validate.eip.network.kubesphere.io": failed to call webhook: Post "https://openelb-admission.openelb-system.svc:443/validate-network-kubesphere-io-v1alpha2-eip?timeout=10s": EOF
+
+若要忽略该类信息，可通过运行如下两个命令关闭相关的校验功能，然后再重新创建EIP资源。
+
+```bash
+kubectl delete -A ValidatingWebhookConfiguration openelb-admission
+kubectl delete -A MutatingWebhookConfiguration openelb-admission
+```
+
 ### 清理
 
 删除部署的测试目的Deployment和LoadBalancer Server。
