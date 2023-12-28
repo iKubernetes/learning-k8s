@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demoapp-seccont-privileged
+  namespace: default
+  labels:
+    app: demoapp
+    version: v1.0
+spec:
+  containers: 
+  - name: demoapp
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    securityContext:
+      privileged: true
+  restartPolicy: OnFailure

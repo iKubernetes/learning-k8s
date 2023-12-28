@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demoapp-seccon-capability
+  namespace: default
+  labels:
+    app: demoapp
+    version: v1.0
+spec:
+  containers: 
+  - name: demoapp
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+        drop:
+        - CHOWN
+  restartPolicy: OnFailure
