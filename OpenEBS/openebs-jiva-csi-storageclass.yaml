@@ -1,0 +1,9 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-jiva-csi
+provisioner: jiva.csi.openebs.io
+allowVolumeExpansion: true
+parameters:
+  cas-type: "jiva"
+  policy: "jivavolumepolicy-demo"

@@ -1,0 +1,24 @@
+apiVersion: openebs.io/v1alpha1
+kind: JivaVolumePolicy
+metadata:
+  name: jivavolumepolicy-demo
+  namespace: openebs
+spec:
+  replicaSC: openebs-hostpath
+  target:
+    # This sets the number of replicas for high-availability
+    # replication factor <= no. of (CSI) nodes
+    replicationFactor: 2
+    # disableMonitor: false
+    # auxResources:
+    # tolerations:
+    # resources:
+    # affinity:
+    # nodeSelector:
+    # priorityClassName:
+  # replica:
+    # tolerations:
+    # resources:
+    # affinity:
+    # nodeSelector:
+    # priorityClassName:
