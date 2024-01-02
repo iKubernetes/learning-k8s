@@ -2,7 +2,7 @@
 
 OpenEBS是CAS存储机制的著名实现之一，由CNCF孵化。
 
-### 部署OpenEBS
+## 部署OpenEBS
 
 运行如下命令，即可部署基础的OpenEBS系统，默认部署在openebs名称空间。
 
@@ -10,10 +10,16 @@ OpenEBS是CAS存储机制的著名实现之一，由CNCF孵化。
 kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
 ```
 
-若需要支持Jiva、cStor、Local PV ZFS和Local PV LVM等数据引擎，还需要额外部署相关的组件。例如，运行如下命令，即可部署Jiva CSI。
+若需要支持Jiva、cStor、Local PV ZFS和Local PV LVM等数据引擎，还需要额外部署相关的组件。例如，运行如下命令，即可于openebs名称空间中部署Jiva CSI Controller及CSI Plugin。
 
 ```bash
 kubectl apply -f https://openebs.github.io/charts/jiva-operator.yaml
+```
+
+运行如下命令，即可部署Local PV LVM相关的Controller和CSI Plugin。需要说明的是，Local PV LVM相关的Pod部署于kube-system名称空间。
+
+```bash
+kubectl apply -f https://openebs.github.io/charts/lvm-operator.yaml
 ```
 
 > 提示：如需要用到Jiva数据引擎，则需要事先在每个节点上部署iSCSI client。Ubuntu系统的安装命令如下。
@@ -46,7 +52,21 @@ spec:
 
 创建JivaVolumePolicy，而后创建Jiva相关的StorageClass，即可从该StorageClass中请求创建PVC。
 
+### 测试使用Local PV LVM
 
+创建Local PV LVM相关的使用StorageClass，即可从该StorageClass中请求创建PVC。另外，Local PV LVM卷还支持扩容和快照等功能。
+
+## 部署OpenEBS Dynamic NFS Provider
+
+OpenEBS Dynamic NFS Provider能够为OpenEBS的多种数据引擎上的卷添加支持多路读写（RWX）的功能，但相关的组件需要单独部署。
+
+```bash
+kubectl apply -f https://openebs.github.io/charts/nfs-operator.yaml
+```
+
+### 测试使用NFS PV
+
+创建NFS PV相关的使用StorageClass，即可从该StorageClass中请求创建PVC。
 
 ## 版权声明
 
