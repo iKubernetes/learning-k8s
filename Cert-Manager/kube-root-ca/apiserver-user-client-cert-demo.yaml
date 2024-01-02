@@ -1,0 +1,24 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: apiserver-user-kubeadm-cert
+spec:
+  secretName: apiserver-user-kubeadmin-tls
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 4096
+  duration: 168h # 1 week
+  renewBefore: 48h # 2 days
+  subject:
+    organizations:
+      - system:masters
+  commonName: kubeadmin
+  isCA: false
+  usages:
+    - client auth
+  issuerRef:
+    name: kube-root-ca-issuer
+    kind: ClusterIssuer

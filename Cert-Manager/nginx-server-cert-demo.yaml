@@ -1,0 +1,33 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nginx-server
+  namespace: default
+spec:
+  secretName: nginx-server-tls
+  isCA: false
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+  - "nginx-server.default.svc.cluster.local"
+  - "nginx-server"
+  issuerRef:
+    name: private-ca-issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nginx-client
+  namespace: default
+spec:
+  secretName: nginx-client-tls
+  isCA: false
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+  - "nginx-client.test.svc.cluster.local"
+  - "nginx-client"
+  issuerRef:
+    name: private-ca-issuer

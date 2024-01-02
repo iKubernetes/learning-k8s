@@ -1,0 +1,21 @@
+# CA Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: private-ca
+spec:
+  isCA: true
+  commonName: private-ca
+  subject:
+    organizations:
+      - MageEdu
+    organizationalUnits:
+      - DevOps
+  secretName: private-ca-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
