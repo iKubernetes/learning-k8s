@@ -1,0 +1,8 @@
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: openebs-local-lvm-pvc-snap
+spec:
+  volumeSnapshotClassName: openebs-lvmpv-snapclass
+  source:
+    persistentVolumeClaimName: openebs-local-lvm-pvc

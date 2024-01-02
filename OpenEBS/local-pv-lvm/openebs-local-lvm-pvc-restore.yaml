@@ -1,0 +1,15 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: openebs-local-lvm-pvc-restore
+spec:
+  dataSource:
+    name: openebs-local-lvm-pvc-snap
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+  storageClassName: openebs-lvmpv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
