@@ -9,7 +9,7 @@ eck-operator是Elastic官方维护的Elastic Stack相关各组件的Operator。
 
 提示：部署ElasticSearch的过程依赖于一个可用的默认StorageClass，或者在配置中明确指定要使用的StorageClass。
 
-下面的配置清单定义了一个ElasticSearch集群，版本为8.7.1。
+下面的配置清单定义了一个ElasticSearch集群，版本为8.11.3。
 
 ```yaml
 apiVersion: elasticsearch.k8s.elastic.co/v1
@@ -17,7 +17,7 @@ kind: Elasticsearch
 metadata:
   name: myes
 spec:
-  version: 8.7.1
+  version: 8.11.3
   nodeSets:
   - name: default
     count: 3
@@ -68,28 +68,28 @@ curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200
 ```
 获取到的ElasticSearch的Banner信息如下。
 ```
-{ 
-  "name" : "myes-es-default-1", 
-  "cluster_name" : "myes", 
-  "cluster_uuid" : "Dv-m6dyNSumIebUkQV6u4g", 
-  "version" : { 
-    "number" : "8.7.1", 
-    "build_flavor" : "default", 
-    "build_type" : "docker", 
-    "build_hash" : "f229ed3f893a515d590d0f39b05f68913e2d9b53", 
-    "build_date" : "2023-04-27T04:33:42.127815583Z", 
-    "build_snapshot" : false, 
-    "lucene_version" : "9.5.0", 
-    "minimum_wire_compatibility_version" : "7.17.0", 
-    "minimum_index_compatibility_version" : "7.0.0" 
-  }, 
-  "tagline" : "You Know, for Search" 
-} 
+{
+  "name" : "myes-es-default-1",
+  "cluster_name" : "myes",
+  "cluster_uuid" : "gCl81n1HS1q2W-dreAo31Q",
+  "version" : {
+    "number" : "8.11.3",
+    "build_flavor" : "default",
+    "build_type" : "docker",
+    "build_hash" : "64cf052f3b56b1fd4449f5454cb88aca7e739d9a",
+    "build_date" : "2023-12-08T11:33:53.634979452Z",
+    "build_snapshot" : false,
+    "lucene_version" : "9.8.0",
+    "minimum_wire_compatibility_version" : "7.17.0",
+    "minimum_index_compatibility_version" : "7.0.0"
+  },
+  "tagline" : "You Know, for Search"
+}
 ```
 
 ## 部署Filebeat
 
-Filebeat相关的[配置文件](./beats-filebeat.yaml)定义了一个Beats资源，它以DaemonSet控制器在每个节点上运行一个filebeat实例，收集日志并保存至ElasticSeach集群中。应用的版本同样为8.7.1。运行如下命令即可将其部署到集群上的elastic-system名称空间下。
+Filebeat相关的[配置文件](./beats-filebeat.yaml)定义了一个Beats资源，它以DaemonSet控制器在每个节点上运行一个filebeat实例，收集日志并保存至ElasticSeach集群中。应用的版本同样为8.11.3。运行如下命令即可将其部署到集群上的elastic-system名称空间下。
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/eck-operator/beats-filebeat.yaml
@@ -101,17 +101,17 @@ kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/mast
 curl -u "elastic:$PASSWORD" -k https://myes-es-http.elastic-system:9200/_cat/indices
 ```
 
-下面是命令显示的结果，其中的名称形如“.ds-filebeat-8.7.1-2023.05.23-000001”的索引存储的即为filebeat收集的日志信息。
+下面是命令显示的结果，其中的名称形如“.ds-filebeat-8.11.3-2023.05.23-000001”的索引存储的即为filebeat收集的日志信息。
 
 ```
 green open .fleet-files-agent-000001            6PfhLWE-Rvu8sheE7-nFqw 1 1     0 0   450b   225b 
-green open .ds-filebeat-8.7.1-2023.05.23-000001 kLZmXupSRqmJUKzlp8ETCQ 1 1 22549 0 24.4mb 12.3mb 
+green open .ds-filebeat-8.11.3-2023.05.23-000001 kLZmXupSRqmJUKzlp8ETCQ 1 1 22549 0 24.4mb 12.3mb 
 green open .fleet-file-data-agent-000001        oxPnPWV2T6K5Jpq6IFNFFw 1 1     0 0   450b   225b 
 ```
 
 ## 部署Kibana
 
-本示例中的Kinaba相关的[配置文件](./kibana-myes.yaml)定义了一个Kibana资源，它会创建一个Kibana实例，并关联至前面创建的ElasticSeach集群myes中。Kibana的版本同样为8.7.1。运行如下命令即可完成资源创建。
+本示例中的Kinaba相关的[配置文件](./kibana-myes.yaml)定义了一个Kibana资源，它会创建一个Kibana实例，并关联至前面创建的ElasticSeach集群myes中。Kibana的版本同样为8.11.3。运行如下命令即可完成资源创建。
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/eck-operator/kibana-myes.yaml
