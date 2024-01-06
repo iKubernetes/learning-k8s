@@ -1,0 +1,32 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-selected-ingresses
+  namespace: default
+spec:
+  podSelector: {}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values: ["default", "kube-system", "monitor"]
+    - ipBlock:
+        cidr: 192.168.10.0/24
+    ports: []
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: demo
+      podSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values: ["demoapp", "nginx"]
+    ports:
+    - port: 80
+      protocol: TCP
+  policyTypes:
+  - Ingress
