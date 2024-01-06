@@ -58,6 +58,16 @@ spec:
 
 
 
+### 注意事项
+
+#### MetalLB on OpenStack
+
+You can run a Kubernetes cluster on OpenStack VMs, and use MetalLB as the load balancer. However you have to disable OpenStack’s ARP spoofing protection if you want to use L2 mode. You must disable it on all the VMs that are running Kubernetes.
+
+By design, MetalLB’s L2 mode looks like an ARP spoofing attempt to OpenStack, because we’re announcing IP addresses that OpenStack doesn’t know about. There’s currently no way to make OpenStack cooperate with MetalLB here, so we have to turn off the spoofing protection entirely.
+
+
+
 ## 版权声明
 
 本文档由[马哥教育](http://www.magedu.com)开发，允许自由转载，但必须保留马哥教育及相关的一切标识。另外，商用需要征得马哥教育的书面同意。
