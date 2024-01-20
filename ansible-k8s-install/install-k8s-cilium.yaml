@@ -21,7 +21,7 @@
 
 - hosts: master
   vars:
-    k8s_version: "v1.28.2"
+    k8s_version: "v1.29.1"
     pod_cidr: "10.244.0.0/16"
     service_cidr: "10.96.0.0/12"
     cluster_name: "cluster01"
