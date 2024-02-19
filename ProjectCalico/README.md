@@ -11,6 +11,26 @@
 - k8s-node02.magedu.com，地址为172.29.7.12
 - k8s-node03.magedu.com，地址为172.29.7.13
 
+Calico的默认配置中，各节点间建立的是full-mesh拓扑。下面是在k8s-master01.magedu.com运行“calicoctl node status”命令打印的相关信息。
+
+```
++--------------+-------------------+-------+----------+-------------+
+| PEER ADDRESS |     PEER TYPE     | STATE |  SINCE   |    INFO     |
++--------------+-------------------+-------+----------+-------------+
+| 172.29.7.11  | node-to-node mesh | up    | 09:25:26 | Established |
+| 172.29.7.12  | node-to-node mesh | up    | 09:25:26 | Established |
+| 172.29.7.13  | node-to-node mesh | up    | 09:25:26 | Established |
++--------------+-------------------+-------+----------+-------------+
+```
+
+相关的节点间默认使用64512自治系统号，下面的结果由命令“calicoctl get nodes -o wide”所打印。
+
+NAME                      ASN       IPV4             IPV6   
+k8s-master01.magedu.com   (64512)   172.29.7.1/16           
+k8s-node01.magedu.com     (64512)   172.29.7.11/16          
+k8s-node02.magedu.com     (64512)   172.29.7.12/16          
+k8s-node03.magedu.com     (64512)   172.29.7.13/16          
+
 在后面的测试步骤中，我们会先配置k8s-master01成为Router Reflector，而后再调整k8s-node01.magedu.com也成为RR，以提供冗余能力。
 
 > 重要提醒：配置过程中，Calico网络可能会出现短暂的通信中断，生产环境中，请务必确保在维护窗口期内进行操作。
