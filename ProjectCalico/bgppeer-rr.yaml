@@ -1,0 +1,10 @@
+# 选定集群中的RR节点
+apiVersion: crd.projectcalico.org/v1
+kind: BGPPeer
+metadata:
+  name: bpgpeer-rr
+spec:
+  # 节点标签选择器，定义当前配置要生效到的目标节点
+  nodeSelector: all()
+  # 该节点要请求与之建立BGP Peer的节点标签选择器，用于过滤和选定远端节点
+  peerSelector: route-reflector == 'true'

@@ -1,0 +1,9 @@
+apiVersion: crd.projectcalico.org/v1
+kind: BGPPeer
+metadata:
+  name: bgppeer-rack001-tor
+spec:
+  # 同满足下面过滤条件的节点建立BGP Peer会话
+  peerSelector: rack001-rr == 'true'
+  # 配置rack001机架上的所有节点的BGP Peer属性
+  nodeSelector: rack == 'rack001'

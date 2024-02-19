@@ -1,0 +1,15 @@
+apiVersion: crd.projectcalico.org/v1
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  logSeverityScreen: Info
+  # 是否启用full-mesh模式，默认为true
+  nodeToNodeMeshEnabled: false
+  nodeMeshMaxRestartTime: 120s
+  # 使用的自治系统号，默认为64512
+  asNumber: 65009
+  serviceClusterIPs:
+    - cidr: 10.96.0.0/12
+  #listenPort: 179
+  #bindMode: NodeIP
