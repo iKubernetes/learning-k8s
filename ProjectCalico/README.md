@@ -25,11 +25,11 @@ Calico的默认配置中，各节点间建立的是full-mesh拓扑。下面是�
 
 相关的节点间默认使用64512自治系统号，下面的结果由命令“calicoctl get nodes -o wide”所打印。
 
-NAME                      ASN       IPV4             IPV6   
-k8s-master01.magedu.com   (64512)   172.29.7.1/16           
-k8s-node01.magedu.com     (64512)   172.29.7.11/16          
-k8s-node02.magedu.com     (64512)   172.29.7.12/16          
-k8s-node03.magedu.com     (64512)   172.29.7.13/16          
+NAME                                            ASN                   IPV4             IPV6   
+k8s-master01.magedu.com     (64512)     172.29.7.1/16           
+k8s-node01.magedu.com        (64512)     172.29.7.11/16          
+k8s-node02.magedu.com        (64512)     172.29.7.12/16          
+k8s-node03.magedu.com        (64512)     172.29.7.13/16          
 
 在后面的测试步骤中，我们会先配置k8s-master01成为Router Reflector，而后再调整k8s-node01.magedu.com也成为RR，以提供冗余能力。
 
