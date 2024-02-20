@@ -19,7 +19,8 @@ spec:
     spec:
       containers:
       - name: minio
-        image: minio/minio:RELEASE.2024-02-17T01-15-57Z
+        #image: minio/minio:RELEASE.2024-02-17T01-15-57Z
+        image: minio/minio:RELEASE.2023-10-24T04-42-36Z
         volumeMounts:
         - name: data
           mountPath: /data
