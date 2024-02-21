@@ -52,9 +52,63 @@ spec:
 
 创建JivaVolumePolicy，而后创建Jiva相关的StorageClass，即可从该StorageClass中请求创建PVC。
 
-### 测试使用Local PV LVM
+### 测试使用Local PV using LVM
 
 创建Local PV LVM相关的使用StorageClass，即可从该StorageClass中请求创建PVC。另外，Local PV LVM卷还支持扩容和快照等功能。
+
+#### 部署前提
+
+在Kubernetes集群上部署OpenEBS LVM Controller之前，需要事先满足以下几个需求：
+
+- 所有节点安装有lvm2 utils程序包，且在内核中装载了dm-snapshot模块； 
+- 配置好了可用的Volume Group，例如lvmvg；
+- openebs-lvm-controller和openebs-lvm-node会部署于kube-system名称空间，请确保有权限使用名称空间
+
+#### 创建Volume Group
+
+在全部或准备有相关设备的节点上创建Pysical Volume和Volume Group以备使用。以“/dev/vdb1”为例，执行如下两个命令即能完成创建。
+
+```bash 
+pvcreate /dev/vdb1
+vgcreate lvmvg /dev/vdb1
+```
+
+若仅在集群中的部分节点上创建了Volume Group，后面创建StorageClass时需要明确指明拥有VG的节点。
+
+#### 部署
+
+运行如下命令即可完成部署。
+
+```bash 
+$ kubectl apply -f https://openebs.github.io/charts/lvm-operator.yaml
+```
+
+#### 创建StorageClass
+
+将如下配置中定义的资源对象创建于Kubernetes集群上，即可从中申请创建PVC。需要说明的是，若仅在集群中的部分节点上创建有相关的Volume Group，则需要启用后面的配置，并明确列出拥有相关VG的节点。
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-lvmpv
+allowVolumeExpansion: true
+parameters:
+  storage: "lvm"
+  volgroup: "lvmvg"
+provisioner: local.csi.openebs.io
+reclaimPolicy: Retain
+#allowedTopologies:
+#- matchLabelExpressions:
+#  - key: kubernetes.io/hostname
+#    values:
+#      - k8s-node01.magedu.com
+#      - k8s-node03.magedu.com
+```
+
+
+
+
 
 ## 部署OpenEBS Dynamic NFS Provider
 
