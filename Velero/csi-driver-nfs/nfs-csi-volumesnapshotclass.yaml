@@ -1,0 +1,12 @@
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: nfs-csi
+  labels:
+    velero.io/csi-volumesnapshot-class: "true" 
+driver: nfs.csi.k8s.io
+parameters:
+parameters:
+  server: 172.29.7.2
+  share: /data/nfs
+deletionPolicy: Delete
