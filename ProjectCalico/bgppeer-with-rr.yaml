@@ -2,7 +2,7 @@
 apiVersion: crd.projectcalico.org/v1
 kind: BGPPeer
 metadata:
-  name: bpgpeer-rr
+  name: peer-with-route-reflector
 spec:
   # 节点标签选择器，定义当前配置要生效到的目标节点
   nodeSelector: all()

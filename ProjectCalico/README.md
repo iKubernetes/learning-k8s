@@ -43,8 +43,41 @@ k8s-node03.magedu.com        (64512)     172.29.7.13/16
 
 配置过程大致分为三个步骤。
 
+- 配置选定的节点成为Route Reflector
 - 配置Calico BGP，禁用full-mesh
 - 配置的有节点仅将选定作为RR的节点作为BGP Peer
+
+#### 创建Route Reflector
+
+集群中的任意Calico Node都可配置成为Route Reflector。不过，要想成为Route Reflector，这些选定的节点必须要有一个配置好的Cluster ID，这个ID通常是一个未被使用的IPv4地址，例如224.0.99.1。
+
+我们首先选定k8s-master01.magedu.com作为集群中的第一个RR。运行如下命令，通过添加相应的注解信息即可配置其Cluster ID。
+
+~# kubectl annotate node k8s-master01.magedu.com projectcalico.org/RouteReflectorClusterID=244.0.99.1
+
+> 提示：若Calico使用的是独立的ectd存储，则需要运行的命令是“calicoctl patch node k8s-master01.magedu.com -p '{"spec": {"bgp": {"routeReflectorClusterID": "244.0.99.1"}}}'”。
+
+为了从众多节点中标识出RR主机，通常还要为其添加可用于过滤的标识，例如节点标签。于是，运行如下命令，为选定的k8s-master01.magedu.com添加节点标签。
+
+~# kubectl label node k8s-master01.magedu.com route-reflector='true'
+
+随后，创建BGPPeer资源对象，配置RR的BGP Peer参数。
+
+```yl
+apiVersion: crd.projectcalico.org/v1
+kind: BGPPeer
+metadata:
+  name: peer-with-route-reflectors
+spec:
+  # 节点标签选择器，定义当前配置要生效到的目标节点
+  nodeSelector: all()
+  # 该节点要请求与之建立BGP Peer的节点标签选择器，用于过滤和选定远端节点
+  peerSelector: route-reflector == 'true'
+```
+
+运行如下命令，将如上配置中定义的BGPPeer对象创建到Kubernetes集群上。
+
+~# kubectl apply -f bgppeer-with-rr.yaml
 
 #### 禁用Full-mesh
 
@@ -77,29 +110,7 @@ spec:
 
 #### 配置同选定的RR建立BGP Peer
 
-为从众多节点中标识出RR主机，需要事先为其添加可用于过滤的标识，例如节点标签。我们首先将k8s-master01.magedu.com选为第一个RR，运行如下命令为其添加节点标签。
-
-~# kubectl label node k8s-master01.magedu.com route-reflector='true'
-
-随后，创建BGPPeer资源对象，配置RR的BGP Peer参数。
-
-```yl
-apiVersion: crd.projectcalico.org/v1
-kind: BGPPeer
-metadata:
-  name: bpgpeer-rr
-spec:
-  # 节点标签选择器，定义当前配置要生效到的目标节点
-  nodeSelector: all()
-  # 该节点要请求与之建立BGP Peer的节点标签选择器，用于过滤和选定远端节点
-  peerSelector: route-reflector == 'true'
-```
-
-运行如下命令，将如上配置中定义的BGPPeer对象创建到Kubernetes集群上。
-
-~# kubectl apply -f bgppeer-rr.yaml
-
-随后，在k8s-master01.magedu.com运行如下命令，即可打印同该节点建立BGP Peer会话的相关的信息。因为该节点是RR节点，因而它们同集群中的其它节点都建立BGP会话。 
+在k8s-master01.magedu.com运行如下命令，即可打印同该节点建立BGP Peer会话的相关的信息。因为该节点是RR节点，因而它们同集群中的其它节点都建立BGP会话。 
 
 ~# calicoctl node status
 
@@ -107,9 +118,9 @@ spec:
 +--------------+---------------+-------+----------+-------------+
 | PEER ADDRESS |   PEER TYPE   | STATE |  SINCE   |    INFO     |
 +--------------+---------------+-------+----------+-------------+
-| 172.29.7.1   | node specific | up    | 06:01:15 | Established |
-| 172.29.7.12  | node specific | up    | 06:01:42 | Established |
-| 172.29.7.13  | node specific | up    | 06:01:42 | Established |
+| 172.29.7.11  | node specific | up    | 07:31:18 | Established |
+| 172.29.7.12  | node specific | up    | 07:31:18 | Established |
+| 172.29.7.13  | node specific | up    | 07:31:18 | Established |
 +--------------+---------------+-------+----------+-------------+
 ```
 
@@ -119,13 +130,15 @@ spec:
 +--------------+---------------+-------+----------+-------------+
 | PEER ADDRESS |   PEER TYPE   | STATE |  SINCE   |    INFO     |
 +--------------+---------------+-------+----------+-------------+
-| 172.29.7.1   | node specific | up    | 06:01:16 | Established |
+| 172.29.7.1   | node specific | up    | 07:31:18 | Established |
 +--------------+---------------+-------+----------+-------------+
 ```
 
 ### 配置冗余的RR
 
-再选定一个节点，为其添加“route-reflector='true'”标签，即可提升其为RR。以k8s-node01.magedu.com为例，运行如下命令为其添加节点标签。
+再选定一个节点，为其添加“route-reflector='true'”标签，以及标识Cluster ID的注解信息，即可提升其为另一个RR。以k8s-node01.magedu.com为例，运行如下命令为其添加Cluster ID和节点标签。
+
+~# kubectl annotate node k8s-node01.magedu.com projectcalico.org/RouteReflectorClusterID=244.0.99.1
 
 ~# kubectl label node k8s-node01.magedu.com route-reflector='true'
 
@@ -149,9 +162,9 @@ spec:
 +--------------+---------------+-------+----------+-------------+
 | PEER ADDRESS |   PEER TYPE   | STATE |  SINCE   |    INFO     |
 +--------------+---------------+-------+----------+-------------+
-| 172.29.7.1   | node specific | up    | 06:14:44 | Established |
-| 172.29.7.12  | node specific | up    | 06:15:24 | Established |
-| 172.29.7.13  | node specific | up    | 06:15:26 | Established |
+| 172.29.7.1   | node specific | up    | 07:43:11 | Established |
+| 172.29.7.12  | node specific | up    | 07:43:09 | Established |
+| 172.29.7.13  | node specific | up    | 07:43:09 | Established |
 +--------------+---------------+-------+----------+-------------+
 ```
 
@@ -161,8 +174,8 @@ spec:
 +--------------+---------------+-------+----------+-------------+
 | PEER ADDRESS |   PEER TYPE   | STATE |  SINCE   |    INFO     |
 +--------------+---------------+-------+----------+-------------+
-| 172.29.7.1   | node specific | up    | 06:15:23 | Established |
-| 172.29.7.11  | node specific | up    | 06:15:24 | Established |
+| 172.29.7.1   | node specific | up    | 07:31:18 | Established |
+| 172.29.7.11  | node specific | up    | 07:43:09 | Established |
 +--------------+---------------+-------+----------+-------------+
 ```
 
