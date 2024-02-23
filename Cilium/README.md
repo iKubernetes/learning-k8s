@@ -1,16 +1,38 @@
 # Cilium部署和使用
 
-部署Kubernetes集群时，在kubeadm init命令上使用“--skip-phases=addon/kube-proxy”选项。
+### 部署Kubernetes集群
+
+部署Kubernetes集群时，在kubeadm init命令上使用“--skip-phases=addon/kube-proxy”选项，以跳过kube-proxy的安装。
+
+```bash
+kubeadm init --control-plane-endpoint kubeapi.magedu.com \
+    --kubernetes-version=v1.29.2 \
+    --pod-network-cidr=10.244.0.0/16 \
+    --service-cidr=10.96.0.0/12 \
+    --upload-certs \
+    --image-repository=registry.aliyuncs.com/google_containers \
+    --skip-phases=addon/kube-proxy
+```
+
+
+
+### 部署Cilium
 
 部署Cilium：
 
-  列出版本：
+  列出可用的Cilium版本，默认为目前最新的稳定版。
 
-        cilium install --list-versions 
-    
-        cilium install --dry-run-helm-values
+```
+cilium install --list-versions 
+```
 
-  使用默认的VXLAN模式，并自定义要使用的子网：
+打印在部署时要使用的默认配置。
+
+```
+cilium install --dry-run-helm-values
+```
+
+  示例1：使用默认的VXLAN模式，并自定义要使用的子网：
 
 ```
   cilium install \
@@ -20,7 +42,7 @@
     --set ipam.Operator.ClusterPoolIPv4MaskSize=24
 ```
 
-  或者使用如下命令：
+  或者使用如下与上面功能相同的命令：
 
 ```
   cilium install \
@@ -35,30 +57,11 @@
 
 
 
-可启用bpf masquerade：
 
-​	--set bpf.masquerade=true
+示例2：使用原生路由模式
 
-
-
-使用Cilium网络插件，部署Kubernetes集群。
-
-```
-  kubeadm init --control-plane-endpoint kubeapi.magedu.com \
-      --kubernetes-version=v1.29.2 \
-      --pod-network-cidr=10.244.0.0/16 \
-      --service-cidr=10.96.0.0/12 \
-      --upload-certs \
-      --image-repository=registry.aliyuncs.com/google_containers \
-      --skip-phases=addon/kube-proxy
-```
-
-
-
-
-使用原生路由模式：
-
-  提示：云上主机未必支持该模式。
+>  提示：云上主机未必支持该模式。
+>
 
 ```
   cilium install \
@@ -73,22 +76,28 @@
 
   说明：开启native routing模式后，通常应该明确指定支持原生路由的网段。
 
+#### Cilium的高级特性  
 
-  开启bpf masquerade：--set bpf.masquerade=true
+开启bpf masquerade：
 
-  设置负载均衡模式：
+--set bpf.masquerade=true
+
+ 
+
+设置负载均衡模式：
         --set loadBalancer.mode=dsr 或者
         --set loadBalancer.mode=hybrid
                 混合模式，即dsr和snat两种
 
-  开启DSR模式：--set autoDirectNodeRoutes=true
+  
 
-  是否启用bpf LegacyRouting: --set bpf.hostLegacyRouting=true
+开启DSR模式：--set autoDirectNodeRoutes=true
+
+是否启用bpf LegacyRouting: --set bpf.hostLegacyRouting=true
 
 
 
-
-启用Hubble及UI：
+#### 启用Hubble及UI
 
 通过cilium命令启用：
 
@@ -136,3 +145,8 @@ cilium hubble enable --ui
   --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}"
 ```
 
+### 启用BGP
+
+部署kube-router
+
+https://docs.cilium.io/en/stable/network/kube-router/
