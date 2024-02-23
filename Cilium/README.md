@@ -7,19 +7,22 @@
   列出版本：
 
         cilium install --list-versions 
-
+    
         cilium install --dry-run-helm-values
 
   使用默认的VXLAN模式，并自定义要使用的子网：
 
+```
   cilium install \
     --set kubeProxyReplacement=strict \
     --set ipam.mode=kubernetes \
     --set ipam.operator.clusterPoolIPv4PodCIDRList=10.244.0.0/16 \
     --set ipam.Operator.ClusterPoolIPv4MaskSize=24
-
+```
 
   或者使用如下命令：
+
+```
   cilium install \
     --set kubeProxyReplacement=strict \
     --set ipam.mode=kubernetes \
@@ -27,30 +30,37 @@
     --set tunnelProtocol=vxlan \
     --set ipam.operator.clusterPoolIPv4PodCIDRList=10.244.0.0/16 \
     --set ipam.Operator.ClusterPoolIPv4MaskSize=24  
+```
 
 
-    可启用bpf masquerade：--set bpf.masquerade=true
+
+
+可启用bpf masquerade：
+
+​	--set bpf.masquerade=true
+
 
 
 使用Cilium网络插件，部署Kubernetes集群。
 
-  kubeadm init --control-plane-endpoint kubeapi.magedu.com --kubernetes-version=v1.28.2 --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/12 --cri-socket unix:///run/cri-dockerd.sock \
-    --upload-certs --image-repository=registry.aliyuncs.com/google_containers --skip-phases=addon/kube-proxy
+```
+  kubeadm init --control-plane-endpoint kubeapi.magedu.com \
+      --kubernetes-version=v1.29.2 \
+      --pod-network-cidr=10.244.0.0/16 \
+      --service-cidr=10.96.0.0/12 \
+      --upload-certs \
+      --image-repository=registry.aliyuncs.com/google_containers \
+      --skip-phases=addon/kube-proxy
+```
 
 
-  kubeadm init --control-plane-endpoint kubeapi.magedu.com --kubernetes-version=v1.27.3 --pod-network-cidr=10.244.0.0/16 \
-    --service-cidr=10.96.0.0/12 --cri-socket unix:///run/cri-dockerd.sock \
-    --upload-certs --image-repository=registry.magedu.com/google_containers \
-    --skip-phases=addon/kube-proxy
-
-
-    registry.aliyuncs.com/google_containers
 
 
 使用原生路由模式：
 
   提示：云上主机未必支持该模式。
 
+```
   cilium install \
     --set kubeProxyReplacement=strict \
     --set ipam.mode=kubernetes \
@@ -59,6 +69,7 @@
     --set ipam.Operator.ClusterPoolIPv4MaskSize=24 \
     --set ipv4NativeRoutingCIDR=10.244.0.0/16 \
     --set autoDirectNodeRoutes=true
+```
 
   说明：开启native routing模式后，通常应该明确指定支持原生路由的网段。
 
@@ -79,36 +90,49 @@
 
 启用Hubble及UI：
 
-    通过cilium命令启用：
-        cilium hubble enable --ui
+通过cilium命令启用：
 
-    部署cilium时直接启用，在cilium命令上使用如下选项即可：
+```
+cilium hubble enable --ui
+```
 
-        --set hubble.enabled="true" \
-        --set hubble.listenAddress=":4244" \
-        --set hubble.relay.enabled="true" \
-        --set hubble.ui.enabled="true"   
+部署cilium时直接启用，在cilium命令上使用如下选项即可：
+
+```
+    --set hubble.enabled="true" \
+    --set hubble.listenAddress=":4244" \
+    --set hubble.relay.enabled="true" \
+    --set hubble.ui.enabled="true"   
+```
 
 
-    同Prometheus对接：
-        --set prometheus.enabled=true \
-        --set operator.prometheus.enabled=true \
-        --set hubble.metrics.port=9665 \
 
-        --set hubble.metrics.enableOpenMetrics=true \
-        --set metrics.enabled="{dns:query;ignoreAAAA;destinationContext=pod-short,drop:sourceContext=pod;destinationContext=pod,tcp,flow,port-distribution,icmp,http}"
-        # 上面的设置，表示开启了hubble的metrics输出模式，并输出以上这些信息。默认情况下，Hubble daemonset会自动暴露metrics API给Prometheus。
+同Prometheus对接：
+
+```
+    --set prometheus.enabled=true \
+    --set operator.prometheus.enabled=true \
+    --set hubble.metrics.port=9665 \
+    --set hubble.metrics.enableOpenMetrics=true \
+    --set metrics.enabled="{dns:query;ignoreAAAA;destinationContext=pod-short,drop:sourceContext=pod;destinationContext=pod,tcp,flow,port-distribution,icmp,http}"
+    # 上面的设置，表示开启了hubble的metrics输出模式，并输出以上这些信息。默认情况下，Hubble daemonset会自动暴露metrics API给Prometheus。
+```
+
+
 
 
         --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}"
         #上面的设置，表示启用所有的指标。
 
+示例：暴露所有指标的hubble配置，其它选项保持默认值即可
 
-    示例：暴露所有指标的hubble配置，其它选项保持默认值即可
-      --set prometheus.enabled=true \
-      --set operator.prometheus.enabled=true \
-      --set hubble.enabled=true \
-      --set hubble.metrics.enableOpenMetrics=true \
-      --set hubble.ui.enabled=true \
-      --set hubble.relay.enabled="true" \
-      --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}"
+```
+  --set prometheus.enabled=true \
+  --set operator.prometheus.enabled=true \
+  --set hubble.enabled=true \
+  --set hubble.metrics.enableOpenMetrics=true \
+  --set hubble.ui.enabled=true \
+  --set hubble.relay.enabled="true" \
+  --set hubble.metrics.enabled="{dns,drop,tcp,flow,port-distribution,icmp,httpV2:exemplars=true;labelsContext=source_ip\,source_namespace\,source_workload\,destination_ip\,destination_namespace\,destination_workload\,traffic_direction}"
+```
+
