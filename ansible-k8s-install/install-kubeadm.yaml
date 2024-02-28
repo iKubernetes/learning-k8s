@@ -85,7 +85,7 @@
 
   - name: Add the apt repository for Kubernetes
     apt_repository:
-      repo: deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://mirrors.aliyun.com/kubernetes-new/core/stable/v1.29/deb/ /
+      repo: deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://mirrors.aliyun.com/kubernetes-new/core/stable/{{ kube_version }}/deb/ /
       state: present
       filename: kubernetes.list
 
