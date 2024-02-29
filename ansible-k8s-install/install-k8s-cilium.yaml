@@ -22,6 +22,8 @@
 - hosts: master
   vars:
     k8s_version: "v1.29.2"
+    # stable controlPlaneEndpoint address for ha masters
+    control_plane_endpoint: ""
     pod_cidr: "10.244.0.0/16"
     service_cidr: "10.96.0.0/12"
     cluster_name: "cluster01"
@@ -47,12 +49,12 @@
   tasks:
   - name: Initialize the Kubernetes cluster with kube-proxy
     become: true
-    command: kubeadm init --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }} --kubernetes-version={{ k8s_version }}
+    command: kubeadm init --control-plane-endpoint={{ node_ip }} --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }} --kubernetes-version={{ k8s_version }}
     when: (kubeproxyfree is defined and kubeproxyfree == "disabled") or encryption == "ipsec"
 
   - name: Initialize the Kubernetes cluster without kube-proxy
     become: true
-    command: kubeadm init --pod-network-cidr={{ pod_cidr }} --skip-phases=addon/kube-proxy --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }} --kubernetes-version={{ k8s_version }}
+    command: kubeadm init --control-plane-endpoint={{ node_ip }} --pod-network-cidr={{ pod_cidr }} --skip-phases=addon/kube-proxy --apiserver-advertise-address={{ node_ip }} --apiserver-cert-extra-sans={{ node_ip }} --image-repository={{ image_repo }} --service-cidr={{ service_cidr }} --kubernetes-version={{ k8s_version }}
     when: kubeproxyfree is not defined or kubeproxyfree != "disabled"
 
   - name: Setup kubeconfig
