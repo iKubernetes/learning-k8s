@@ -1,0 +1,48 @@
+# Maintainer: MageEdu <mage@magedu.com>
+#
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: alertmanager-config
+  namespace: prom
+data:
+  config.yml: |-
+    global:
+    templates:
+    - '/etc/alertmanager-templates/*.tmpl'
+    route:
+      receiver: ops-team
+      group_by: ['alertname', 'priority']
+      group_wait: 10s
+      repeat_interval: 30m
+      routes:
+        - receiver: ops-manager
+          match:
+            severity: critical
+          group_wait: 10s
+          repeat_interval: 30m
+ 
+    receivers:
+    - name: ops-team
+      email_configs:
+      - to: ops@magedu.com
+        send_resolved: false
+        from: monitoring@magedu.com
+        smarthost: smtp.magedu.com:25
+        require_tls: false
+        headers:
+          subject: "{{ .Status | toUpper }} {{ .CommonLabels.env }}:{{ .CommonLabels.cluster }} {{ .CommonLabels.alertname }}"
+        html: '{{ template "email.default.html" . }}'
+    - name: ops-manager
+      webhook_configs:
+      - url: http://prometheus-webhook-dingtalk:8060/dingtalk/webhook1/send             
+        send_resolved: true
+
+    inhibit_rules: 
+    - source_match: 
+        severity: 'critical' 
+      target_match: 
+        severity: 'warning' 
+      equal: ['alertname', 'job']
+---

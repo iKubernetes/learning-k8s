@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-state-metrics
+  namespace: prom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-state-metrics
+  template:
+    metadata:
+      labels:
+        app: kube-state-metrics
+    spec:
+      serviceAccountName: kube-state-metrics
+      containers:
+      - name: kube-state-metrics
+        image: gcmirrors/kube-state-metrics:v1.9.5
+        #image: registry.magedu.com/gcmirrors/kube-state-metrics-amd64:v1.7.1
+        ports:
+        - containerPort: 8080

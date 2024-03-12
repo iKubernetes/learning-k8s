@@ -1,0 +1,63 @@
+# Maintainer: MageEdu <mage@magedu.com>
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: prom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      name: grafana
+      labels:
+        app: grafana
+    spec:
+      initContainers:
+      - name: fix-permissions
+        image: alpine
+        command: ["sh", "-c", "chown -R 472:472 /var/lib/grafana/"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.2.5
+        #image: registry.magedu.com/grafana/grafana:9.5.13
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grafana
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+          - mountPath: /etc/grafana/provisioning/datasources
+            name: grafana-datasources
+            readOnly: false
+          #- mountPath: /etc/grafana/provisioning/dashboards
+          #  name: grafana-dashboards
+          - mountPath: /var/lib/grafana
+            name: grafana-storage
+      volumes:
+        - name: grafana-datasources
+          configMap:
+            defaultMode: 420
+            name: grafana-datasources
+        #- configMap:
+        #    defaultMode: 420
+        #    name: grafana-dashboards
+        - name: grafana-storage
+          persistentVolumeClaim:
+            claimName: grafana-pvc
+

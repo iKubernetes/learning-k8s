@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "15692"
+    prometheus.io/path: "/metrics"
+    # Grafana Dashboard ID 10991 and 11340.
+spec:
+  clusterIP: None
+  ports:
+  - port: 15672
+    targetPort: 15672
+    name: discovery
+  - port: 15692
+    targetPort: 15692
+    name: prometheus
+  - port: 5672
+    targetPort: 5672
+    name: amqp
+  selector:
+    app: rabbitmq
+---

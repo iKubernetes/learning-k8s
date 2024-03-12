@@ -1,0 +1,80 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  labels:
+    app: minio
+spec:
+  serviceName: "minio-headless"
+  replicas: 4 
+  podManagementPolicy: "Parallel"
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9000"
+        prometheus.io/path: "/minio/v2/metrics/node"
+        #prometheus.io/path: "/minio/v2/metrics/cluster"
+        #prometheus.io/path: "/minio/v2/metrics/bucket"
+    spec:
+      containers:
+      - name: minio
+        #image: registry.magedu.com/minio/minio:RELEASE.2023-08-04T17-40-21Z
+        image: minio/minio:RELEASE.2024-03-10T02-53-48Z
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        args:
+        - server
+        - http://minio-{0...3}.minio-headless.$(MINIO_POD_NAMESPACE).svc.cluster.local/data
+        - "--address=:9000"
+        - "--console-address=:9001"
+        env:
+        # MinIO access key and secret key
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ROOT_USER
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ROOT_PASSWORD
+        - name: MINIO_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MINIO_PROMETHEUS_AUTH_TYPE
+          value: "public"
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /minio/health/live
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 10
+        ports:
+        - containerPort: 9000
+          name: http
+          protocol: TCP
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi        
+      storageClassName: "openebs-hostpath"
+      # This field references the existing StorageClass

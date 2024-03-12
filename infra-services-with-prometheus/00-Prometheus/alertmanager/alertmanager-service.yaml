@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: prom
+  annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port:   '9093'
+spec:
+  selector: 
+    app: alertmanager
+  type: LoadBalancer
+  ports:
+    - port: 9093
+      targetPort: 9093

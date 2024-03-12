@@ -1,0 +1,75 @@
+# Maintainer: MageEdu <mage@magedu.com>
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-templates
+  namespace: prom
+data:
+  dingtalk_template.tmpl: "{{ define \"dingtalk.default.message\" }}\n{{- if gt (len
+    .Alerts.Firing) 0 -}}\n{{- range $index, $alert := .Alerts -}}\n{{- if eq $index
+    0 }}\n========= 监控报警 =========  \n告警状态：{{   .Status }}  \n告警级别：{{ .Labels.severity
+    }}  \n告警类型：{{ $alert.Labels.alertname }}  \n故障主机: {{ $alert.Labels.instance }}
+    \ \n告警主题: {{ $alert.Annotations.summary }}  \n告警详情: {{ $alert.Annotations.message
+    }}{{ $alert.Annotations.description}}  \n触发阈值：{{ .Annotations.value }}  \n故障时间:
+    {{ ($alert.StartsAt.Add 28800e9).Format \"2006-01-02 15:04:05\" }}  \n=========
+    = end =  =========  \n{{- end }}\n{{- end }}\n{{- end }}\n\n{{- if gt (len .Alerts.Resolved)
+    0 -}}\n{{- range $index, $alert := .Alerts -}}\n{{- if eq $index 0 }}\n=========
+    异常恢复 =========  \n告警类型：{{ .Labels.alertname }}  \n告警状态：{{   .Status }}  \n告警主题:
+    {{ $alert.Annotations.summary }}  \n告警详情: {{ $alert.Annotations.message }}{{ $alert.Annotations.description}}
+    \ \n故障时间: {{ ($alert.StartsAt.Add 28800e9).Format \"2006-01-02 15:04:05\" }}  \n恢复时间:
+    {{ ($alert.EndsAt.Add 28800e9).Format \"2006-01-02 15:04:05\" }}  \n{{- if gt
+    (len $alert.Labels.instance) 0 }}  \n实例信息: {{ $alert.Labels.instance }}  \n{{-
+    end }}  \n========= = end =  =========  \n{{- end }}\n{{- end }}\n{{- end }}\n{{-
+    end }}\n"
+  email_template.tmpl: "{{ define \"email.default.html\" }}\n{{- if gt (len .Alerts.Firing)
+    0 -}}\n{{ range .Alerts }}\n=========start==========<br>\n告警程序: prometheus_alert
+    <br>\n告警级别: {{ .Labels.severity }} <br>\n告警类型: {{ .Labels.alertname }} <br>\n告警主机:
+    {{ .Labels.instance }} <br>\n告警主题: {{ .Annotations.summary }}  <br>\n告警详情: {{
+    .Annotations.description }} <br>\n触发时间: {{ .StartsAt.Format \"2006-01-02 15:04:05\"
+    }} <br>\n=========end==========<br>\n{{ end }}{{ end -}}\n \n{{- if gt (len .Alerts.Resolved)
+    0 -}}\n{{ range .Alerts }}\n=========start==========<br>\n告警程序: prometheus_alert
+    <br>\n告警级别: {{ .Labels.severity }} <br>\n告警类型: {{ .Labels.alertname }} <br>\n告警主机:
+    {{ .Labels.instance }} <br>\n告警主题: {{ .Annotations.summary }} <br>\n告警详情: {{ .Annotations.description
+    }} <br>\n触发时间: {{ .StartsAt.Format \"2006-01-02 15:04:05\" }} <br>\n恢复时间: {{ .EndsAt.Format
+    \"2006-01-02 15:04:05\" }} <br>\n=========end==========<br>\n{{ end }}{{ end -}}\n{{-
+    end }}\n"
+  wechat_template.tmpl: |
+    {{ define "wechat.default.message" }}
+    {{- if gt (len .Alerts.Firing) 0 -}}
+    {{- range $index, $alert := .Alerts -}}
+    {{- if eq $index 0 }}
+    ========= 监控报警 =========
+    告警状态：{{   .Status }}
+    告警级别：{{ .Labels.severity }}
+    告警类型：{{ $alert.Labels.alertname }}
+    故障主机: {{ $alert.Labels.instance }}
+    告警主题: {{ $alert.Annotations.summary }}
+    告警详情: {{ $alert.Annotations.message }}{{ $alert.Annotations.description}};
+    触发阈值：{{ .Annotations.value }}
+    故障时间: {{ ($alert.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    ========= = end =  =========
+    {{- end }}
+    {{- end }}
+    {{- end }}
+
+    {{- if gt (len .Alerts.Resolved) 0 -}}
+    {{- range $index, $alert := .Alerts -}}
+    {{- if eq $index 0 }}
+    ========= 异常恢复 =========
+    告警类型：{{ .Labels.alertname }}
+    告警状态：{{   .Status }}
+    告警主题: {{ $alert.Annotations.summary }}
+    告警详情: {{ $alert.Annotations.message }}{{ $alert.Annotations.description}};
+    故障时间: {{ ($alert.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    恢复时间: {{ ($alert.EndsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    {{- if gt (len $alert.Labels.instance) 0 }}
+    实例信息: {{ $alert.Labels.instance }}
+    {{- end }}
+    ========= = end =  =========
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+---

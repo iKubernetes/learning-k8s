@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sentinel
+spec:
+  serviceName: sentinel
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sentinel
+  template:
+    metadata:
+      labels:
+        app: sentinel
+    spec:
+      initContainers:
+      - name: config
+        #image: registry.magedu.com/redis/redis:7.0
+        image: redis:7.0
+        env:
+          - name: REDIS_NODES
+            valueFrom:
+              configMapKeyRef:
+                name: redis-conf
+                key: REDIS_NODES
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: redis-secret
+                key: REDIS_PASSWORD
+        command: [ "sh", "-c", "/scripts/sentinel_init.sh" ]
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/redis/
+        - name: init-script
+          mountPath: /scripts/
+      containers:
+      - name: sentinel
+        #image: registry.magedu.com/redis/redis:7.0
+        image: redis:7.0
+        command: ["redis-sentinel"]
+        args: ["/etc/redis/sentinel.conf"]
+        ports:
+        - containerPort: 5000
+          name: sentinel
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/redis/
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: init-script
+        configMap:
+          name: sentinel-scripts
+          defaultMode: 0777
+          items:
+          - key: sentinel_init.sh
+            path: sentinel_init.sh
+      - name: redis-config
+        emptyDir: {}
+      - name: data
+        persistentVolumeClaim:
+          claimName: data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        app: redis-sentinel
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: nfs-csi
+      resources:
+        requests:
+          storage: 10Gi

@@ -1,0 +1,23 @@
+# Maintainer: MageEdu <mage@magedu.com>
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: prom
+data:
+  prometheus.yaml: |-
+    {
+        "apiVersion": 1,
+        "datasources": [
+            {
+               "access":"proxy",
+                "editable": true,
+                "name": "prometheus",
+                "orgId": 1,
+                "type": "prometheus",
+                "url": "http://prometheus.prom.svc.cluster.local.:9090",
+                "version": 1
+            }
+        ]
+    }
+---

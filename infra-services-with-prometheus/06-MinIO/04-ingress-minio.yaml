@@ -1,0 +1,21 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio
+  annotations:
+    ingress.cilium.io/loadbalancer-mode: 'shared'
+    ingress.cilium.io/service-type: 'Loadbalancer'
+spec:
+  ingressClassName: cilium
+  rules:
+  - host: minio.magedu.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: minio
+            port:
+              number: 9001
