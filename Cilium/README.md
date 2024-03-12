@@ -150,3 +150,7 @@ cilium hubble enable --ui
 部署kube-router
 
 https://docs.cilium.io/en/stable/network/kube-router/
+
+
+
+https://raw.githubusercontent.com/cloudnativelabs/kube-router/v2.0/daemonset/generic-kuberouter-only-advertise-routes.yaml
