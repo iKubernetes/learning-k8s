@@ -142,7 +142,7 @@ spec:
     - metadata:
         name: data
       spec:
-        accessModes: [ "ReadWriteMany" ]
+        accessModes: [ "ReadWriteOnce" ]
         # Modify StorageClass before deployment.
         storageClassName: "openebs-hostpath"
         resources:
