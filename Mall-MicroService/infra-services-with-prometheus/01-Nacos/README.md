@@ -18,9 +18,9 @@ kubectl apply -f 01-secrets-mysql.yaml -f  02-mysql-persistent.yaml -n nacos
 
 #### 访问入口
 
-读请求：mysql-read.mall.svc.cluster.local
+读请求：mysql-read.nacos.svc.cluster.local
 
-写请求：mysql-0.mysql.mall.svc.cluster.local
+写请求：mysql-0.mysql.nacos.svc.cluster.local
 
 #### 创建用户账号
 在mysql上创建nacos专用的用户账号，本示例中，Naocs默认使用nacos用户名和"magedu.com"密码访问mysql服务上的nacosdb数据库。
