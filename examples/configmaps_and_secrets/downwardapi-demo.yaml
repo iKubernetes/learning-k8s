@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: downwardapi-demo
+  name: downwardapi-demo
+spec:
+  containers:
+  - image: ikubernetes/demoapp:v1.0
+    name: downwardapi-demo
+    volumeMounts:
+    - name: dapi
+      mountPath: /dapi
+  volumes:
+  - name: dapi
+    downwardAPI:
+      items:
+      - path: "pod_name"
+        fieldRef: 
+          fieldPath: metadata.name
+      - path: "namespace"
+        fieldRef: 
+          fieldPath: metadata.namespace
