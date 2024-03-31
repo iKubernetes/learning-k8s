@@ -6,8 +6,8 @@
       command: "{{ item }}"
       with_items:
       - kubeadm reset -f
-      - rm -rf /etc/cni/net.d
-      - rm -rf "$HOME/.kube" /etc/kubernetes/ /var/lib/kubelet /var/lib/dockershim /var/run/kubernetes /var/lib/cni /var/lib/etcd
+      - rm -rf /etc/cni/net.d /var/lib/cni
+      - rm -rf "$HOME/.kube" /etc/kubernetes/ /var/lib/kubelet /var/lib/dockershim /var/run/kubernetes /var/lib/etcd /var/openebs/
 
     # This is to reset:
     # - mtu changes (we could store the original values or always set one)
