@@ -4,12 +4,16 @@ Kuboard是一款免费的Kubernetes管理工具，提供了丰富的功能，结
 
 项目地址：[Kuboard](https://kuboard.cn)
 
-## 部署Kuboard v3
+## 部署Kuboard-v3
+
+以下给出两个部署kuboard-v3的方式，其中“临时存储”不依赖于任何StorageClass即可直接进行部署，而“基于OpenEBS存储”的方式，则依赖于部署可用的OpenEBS环境，且提供了支持“ReadWriteOnce”的“openebs-hostpath”的存储类和支持“ReadWriteMany”的存储类“openebs-rwx”。
+
+#### 临时存储
 
 运行下面的命令，使用本示例中提供的资源配置文件，将Kuboard以单实例形式部署到Kubernetes集群上。
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/Kuboard/deploy.yaml
+kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/Kuboard/kuboard-ephemeral/deploy.yaml
 ```
 
 而后，运行如下命令，查看Kuboard Pod的相关状态。
@@ -27,6 +31,22 @@ kuboard-v3-795d76b98f-b8zxs   1/1     Running   0          2m
 
 接下来即可通过kuboard-v3 Service的NodePort访问其Web应用，在该部署示例中，它使用固定的30080端口。
 
+#### 基于OpenEBS存储
+
+运行下面的命令，使用本示例中提供的资源配置文件，将Kuboard以单实例形式部署到Kubernetes集群上。它依赖于事先部署可用的OpenEBS存储。
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/Kuboard/kuboard-persistent/deploy.yaml
+```
+
+而后，运行如下命令，查看Kuboard Pod的相关状态。
+
+```bash
+kubectl get pods -n kuboard
+```
+
+接下来即可通过kuboard-v3 Service的NodePort访问其Web应用，在该部署示例中，它使用固定的30080端口。
+
 ## 通过Ingress开放Kuboard
 
 相关的配置示例如下，它依赖于一个可用的Ingress Nginx。
@@ -35,7 +55,7 @@ kuboard-v3-795d76b98f-b8zxs   1/1     Running   0          2m
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kuboard
+  name: kuboard-v3
   namespace: kuboard
 spec:
   ingressClassName: nginx
