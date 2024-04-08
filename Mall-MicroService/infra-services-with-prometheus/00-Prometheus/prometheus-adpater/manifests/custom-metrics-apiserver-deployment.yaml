@@ -20,7 +20,7 @@ spec:
       containers:
       - name: custom-metrics-apiserver
         #image: gcr.io/k8s-staging-prometheus-adapter-amd64
-        image: registry.magedu.com/prometheus-adapter/prometheus-adapter:v0.10.0
+        image: registry.k8s.io/prometheus-adapter/prometheus-adapter:v0.10.1
         args:
         - --secure-port=6443
         - --tls-cert-file=/var/run/serving-cert/serving.crt
