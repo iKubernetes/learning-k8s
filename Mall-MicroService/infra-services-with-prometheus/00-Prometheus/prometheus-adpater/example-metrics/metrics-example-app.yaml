@@ -19,7 +19,7 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       containers:
-      - image: ikubernetes/metrics-app
+      - image: ikubernetes/metrics-app:v0.1
         name: metrics-app
         ports:
         - name: web
