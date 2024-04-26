@@ -95,9 +95,15 @@ services:
     volumes:
       - ./loki/:/var/log/
 
-  loggen-apache:
+  loggen-apache-combined:
     image: *flogImage
     command: -f apache_combined -d 2000ms -l
+    networks:
+      - loki
+
+  loggen-apache-common:
+    image: *flogImage
+    command: -f apache_common -d 1500ms -l
     networks:
       - loki
 
