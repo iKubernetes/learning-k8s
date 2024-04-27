@@ -1,4 +1,6 @@
-# Loki Simple Scalable Mode
+# Loki Simple Scalable Mode 部署示例
+
+前提：部署有可用的docker-ce和docker-compose。
 
 You can use this `docker-compose` setup to run Docker for development or in production.
 
@@ -9,8 +11,12 @@ You can use this `docker-compose` setup to run Docker for development or in prod
 - [Minio](https://min.io/) for S3-compatible storage for chunks & indexes
 - nginx gateway which acts as a reverse-proxy to the read/write paths
 - Promtail for logs
-  - An optional log-generator
-- Multi-tenancy enabled (`docker` as the tenant ID)
+  - 带有三个日志生成器示例：loggen-json、loggen-apache-combined和loggen-apache-common，使用三个不同的job分别收集三个容器的日志
+    - loggen-json：JSON格式的HTTP访问日志
+    - loggen-apache-combined：文本格式的HTTP访问日志，combined格式
+    - loggen-apache-commin：文本格式的HTTP访问日志，common格式
+  - 还有一个job用于收集loki-read、loki-write和loki-backend相关容器的日志，日志格式为logfmt
+- 支持多租户(tenant1 as the tenant ID)
 - Configuration for interactive debugging (see [Debugging](#debugging) section below)
 - Prometheus for metric collection
 

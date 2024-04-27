@@ -1,0 +1,45 @@
+version: "3.8"
+
+volumes:
+  tomcat_webapps: {}
+
+networks:
+  loki:
+
+services:
+  loggen-apache-common:
+    image: mingrammer/flog:0.4.3
+    command: -f apache_common -d 1500ms -l
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:2.9.7
+    volumes:
+      - ./promtail.yaml:/etc/promtail/promtail.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/var/log/tomcat
+    ports:
+      - 9080
+    command: -config.file=/etc/promtail/promtail.yaml
+    networks:
+      - loki
+    extra_hosts:
+      - "loki-gateway:172.29.2.1"
+
+  tomcat:
+    #image: tomcat:jdk11
+    build:
+      context: tomcat
+      dockerfile: Dockerfile 
+    hostname: tomcat.magedu.com
+    ports:
+      - 8080:8080
+    volumes:
+      - tomcat_webapps:/usr/local/tomcat/webapps
+      - ./tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml
+      - ./logs:/usr/local/tomcat/logs
+    networks:
+      - loki
+    environment:
+      TZ: Asia/Shanghai
