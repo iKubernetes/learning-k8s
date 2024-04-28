@@ -18,11 +18,6 @@
 <Context antiResourceLocking="false" privileged="true" >
   <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor"
                    sameSiteCookies="strict" />
-    <Valve class 
-        prefix="access-" suffix=".log" 
-        pattern="%a %h %l %u %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" "%{QunarGlobal}c" %{X-Forwarded-For}i"
-        resolveHosts="false"/>
-
 <!--
   <Valve className="org.apache.catalina.valves.RemoteAddrValve"
          allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />

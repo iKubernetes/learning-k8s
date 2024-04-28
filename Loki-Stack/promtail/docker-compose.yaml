@@ -34,7 +34,7 @@ services:
       dockerfile: Dockerfile 
     hostname: tomcat.magedu.com
     ports:
-      - "8080:8080"
+      - 8080:8080
     volumes:
       - tomcat_webapps:/usr/local/tomcat/webapps
       - ./tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml

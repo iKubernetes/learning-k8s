@@ -1,4 +1,5 @@
-FROM tomcat:10.1-jre17-temurin-jammy
+#FROM tomcat:9.0-jdk17-openjdk-slim
+FROM tomcat:10.1-jdk17-temurin-jammy
 
 ADD ./sources.list /etc/apt/sources.list
 
@@ -15,4 +16,6 @@ ADD ./sources.list /etc/apt/sources.list
 #    curl -v --fail --location https://search.maven.org/remotecontent?filepath=nl/nlighten/tomcat_exporter_servlet/${TOMCAT_EXPORTER_VERSION}/tomcat_exporter_servlet-${TOMCAT_EXPORTER_VERSION}.war --output /usr/local/tomcat/webapps/metrics.war
 
 RUN mv /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps/
-ADD ./context.xml /usr/local/tomcat/webapps/manager/META-INF/context.xml
+ADD ./manager-context.xml /usr/local/tomcat/webapps/manager/META-INF/context.xml
+ADD ./docs-context.xml /usr/local/tomcat/webapps/docs/META-INF/context.xml
+ADD ./examples-context.xml /usr/local/tomcat/webapps/examples/META-INF/context.xml

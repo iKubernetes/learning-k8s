@@ -49,4 +49,3 @@ scrape_configs:
         labels:
           job: tomcat-access-logs
           __path__: /var/log/tomcat/*access_log.*.txt
-
