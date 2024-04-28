@@ -64,6 +64,8 @@ ruler:
     local:
       directory: /loki/rules
   rule_path: /loki/prom-rules
+  alertmanager_url: http://alertmanager:9093
+  enable_alertmanager_v2: true
   remote_write:
     enabled: true
     clients:

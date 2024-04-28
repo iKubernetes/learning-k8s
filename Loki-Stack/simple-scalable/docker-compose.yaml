@@ -208,7 +208,6 @@ services:
     depends_on:
       - minio
       - loki-read
-      - loki-write
     deploy:
       mode: replicated
       replicas: 3
