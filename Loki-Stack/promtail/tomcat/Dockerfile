@@ -1,4 +1,4 @@
-FROM tomcat:9.0-jdk17-openjdk-slim
+FROM tomcat:10.1-jre17-temurin-jammy
 
 ADD ./sources.list /etc/apt/sources.list
 
