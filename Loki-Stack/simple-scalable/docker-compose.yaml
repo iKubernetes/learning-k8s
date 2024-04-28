@@ -126,6 +126,9 @@ services:
     ports:
       - "80:80"
       - "3100:3100"
+    depends_on:
+      - loki-read
+      - loki-write
     networks:
       loki:
         aliases:
@@ -177,8 +180,6 @@ services:
         aliases:
           - write
     restart: always
-    depends_on:
-      - loki-backend
     deploy:
       mode: replicated
       replicas: 3
@@ -206,6 +207,8 @@ services:
     restart: always
     depends_on:
       - minio
+      - loki-read
+      - loki-write
     deploy:
       mode: replicated
       replicas: 3
