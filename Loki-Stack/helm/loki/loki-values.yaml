@@ -60,7 +60,8 @@ ingress:
   hosts:
     - loki.magedu.com
   annotations:
-    
+    ingress.cilium.io/loadbalancer-mode: shared
+    ingress.cilium.io/service-type: Loadbalancer    
   paths:
     write:
       - /api/prom/push
