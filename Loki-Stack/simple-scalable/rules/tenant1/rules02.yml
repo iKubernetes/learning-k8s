@@ -1,5 +1,6 @@
 groups:
   - name: http_response
+    interval: 10s
     rules:
       - alert: HighPercentageError
         expr: |
@@ -13,6 +14,7 @@ groups:
         annotations:
             summary: High request latency
   - name: credentials_leak
+    interval: 10s
     rules: 
       - alert: http-credentials-leaked
         annotations: 

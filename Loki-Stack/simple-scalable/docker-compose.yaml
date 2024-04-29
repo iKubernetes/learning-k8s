@@ -154,8 +154,6 @@ services:
         aliases:
           - read
     restart: always
-    depends_on:
-      - loki-backend
     deploy:
       mode: replicated
       replicas: 3
