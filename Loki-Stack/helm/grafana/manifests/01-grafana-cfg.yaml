@@ -1,0 +1,41 @@
+# Maintainer: MageEdu <mage@magedu.com>
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+data:
+  prometheus.yaml: |-
+    {
+      "apiVersion": 1,
+      "datasources": [
+        {
+          "access": "proxy",
+          "basicAuth": false,
+          "jsonData": {
+            "httpHeaderName1": "X-Scope-OrgID"
+          },
+          "secureJsonData": {
+            "httpHeaderValue1": "tenant1"
+          },
+          "editable": true,
+          "isDefault": true,
+          "name": "loki",
+          "type": "loki",
+          "uid": "loki",
+          "url": "http://loki-gateway",
+          "version": 1
+        },
+        {
+          "access": "proxy",
+          "basicAuth": false,
+          "editable": true,
+          "isDefault": false,
+          "name": "prometheus",
+          "type": "prometheus",
+          "uid": "prometheus",
+          "url": "http://prometheus:9090",
+          "version": 1
+        }
+      ]
+    }
+---

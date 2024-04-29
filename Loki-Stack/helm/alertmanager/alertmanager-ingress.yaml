@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alertmanager
+  labels:
+    app: alertmanager
+  annotations:
+    ingress.cilium.io/loadbalancer-mode: 'shared'
+    ingress.cilium.io/service-type: 'Loadbalancer'
+spec:
+  ingressClassName: 'cilium'
+  rules:
+  - host: alert.magedu.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: alertmanager
+            port:
+              number: 9093

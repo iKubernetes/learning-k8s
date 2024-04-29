@@ -1,0 +1,44 @@
+secrets:
+  name: myminio-env-configuration
+  accessKey: minioadmin
+  secretKey: MageEdu123
+
+tenant:
+  name: minio
+  image:
+    repository: quay.io/minio/minio
+    tag: RELEASE.2024-03-15T01-07-19Z
+    pullPolicy: IfNotPresent
+  configuration:
+    name: myminio-env-configuration
+  pools:
+    - servers: 3
+      name: pool-0
+      volumesPerServer: 2
+      storageClassName: openebs-hostpath
+      size: 10Gi
+  certificate:
+    requestAutoCert: true
+  buckets: []
+  exposeServices:
+    minio: false
+    console: true
+
+ingress:
+  api:
+    enabled: false
+    ingressClassName: "cilium"
+    annotations: { }
+    host: minio.local
+    path: /
+    pathType: Prefix
+  console:
+    enabled: false
+    ingressClassName: "cilium"
+    annotations:
+      ingress.cilium.io/loadbalancer-mode: 'shared'
+      ingress.cilium.io/service-type: 'LoadBalancer'
+    host: minio.magedu.com
+    path: /
+    pathType: Prefix
+

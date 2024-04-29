@@ -1,0 +1,11 @@
+console:
+  ingress:
+    enabled: true
+    ingressClassName: "cilium"
+    labels: { }
+    annotations:
+      ingress.cilium.io/loadbalancer-mode: 'shared'
+      ingress.cilium.io/service-type: 'LoadBalancer'
+    host: miniooperator.magedu.com
+    path: /
+    pathType: Prefix
