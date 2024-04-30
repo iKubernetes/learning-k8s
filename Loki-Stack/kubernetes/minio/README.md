@@ -95,6 +95,10 @@ kubectl apply -f minio-ingress.yaml -n minio
 
 
 
+> 注意：后端部署的Loki Server，会基于“minio.minio.svc.cluster.local”的地址访问MinIO Service，且默认使用的账号和密码是“minioadmin/MageEdu123”。
+
+
+
 ### 创建Bucket
 
 登录MinIO的控制台，创建Loki依赖到的三个Bucket。
