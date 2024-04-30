@@ -89,3 +89,9 @@ You can follow [this guide](https://blog.jetbrains.com/go/2020/05/06/debugging-a
 3. Run `docker-compose up`
 4. Set a breakpoint and start the debug configuration
 5. Build/debug something awesome :)
+
+
+
+## 版权声明
+
+本项目由[马哥教育](http://www.magedu.com/)开发，允许自由转载，但必须保留马哥教育及相关的一切标识。另外，商用需要征得马哥教育的书面同意。
