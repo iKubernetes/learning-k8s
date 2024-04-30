@@ -1,0 +1,151 @@
+#minio:
+#  enabled: true
+
+loki:
+  path_prefix: /loki
+  replication_factor: 3
+
+  storage:
+    bucketNames:
+      chunks: chunks
+      ruler: ruler
+      admin: admin
+    type: s3
+    s3:
+      endpoint: minio.minio.svc.cluster.local
+      secretAccessKey: MageEdu123
+      accessKeyId: minioadmin
+      s3ForcePathStyle: true
+      insecure: true
+
+  rulerConfig:
+    enable_api: true
+    enable_sharding: true
+    wal:
+      dir: /loki/ruler-wal
+    evaluation:
+      mode: remote
+      query_frontend:
+        address: dns:///loki-read:9095
+    alertmanager_url: http://alertmanager:9093
+    enable_alertmanager_v2: true
+    remote_write:
+      enabled: true
+      clients:
+        local:
+          url: http://prometheus:9090/api/v1/write
+          queue_config:
+            # send immediately as soon as a sample is generated
+            capacity: 1
+            batch_send_deadline: 0s
+
+  schemaConfig:
+    configs:
+    - from: 2020-08-01
+      store: boltdb-shipper
+      object_store: s3
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+    - from: 2023-07-11
+      store: tsdb
+      object_store: s3
+      schema: v12
+      index:
+        prefix: index_
+        period: 24h
+    - from: 2024-04-01
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+  # -- a real Loki install requires a proper schemaConfig defined above this, however for testing or playing around
+  # you can enable useTestSchema
+  useTestSchema: false
+  testSchemaConfig:
+    configs:
+      - from: 2024-04-01
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+
+ingress:
+  enabled: true
+  ingressClassName: "cilium"
+  hosts:
+    - loki.magedu.com
+  annotations:
+    ingress.cilium.io/loadbalancer-mode: shared
+    ingress.cilium.io/service-type: Loadbalancer    
+  paths:
+    write:
+      - /api/prom/push
+      - /loki/api/v1/push
+    read:
+      - /api/prom/tail
+      - /loki/api/v1/tail
+      - /loki/api
+      - /api/prom/rules
+      - /loki/api/v1/rules
+      - /prometheus/api/v1/rules
+      - /prometheus/api/v1/alerts
+    singleBinary:
+      - /api/prom/push
+      - /loki/api/v1/push
+      - /api/prom/tail
+      - /loki/api/v1/tail
+      - /loki/api
+      - /api/prom/rules
+      - /loki/api/v1/rules
+      - /prometheus/api/v1/rules
+      - /prometheus/api/v1/alerts
+
+write:
+  # -- Number of replicas for the write
+  replicas: 3
+
+  persistence:
+    # -- Enable volume claims in pod spec
+    volumeClaimsEnabled: true
+    # -- Parameters used for the `data` volume when volumeClaimEnabled if false
+    dataVolumeParameters:
+      emptyDir: {}
+    # -- Enable StatefulSetAutoDeletePVC feature
+    enableStatefulSetAutoDeletePVC: false
+    # -- Size of persistent disk
+    size: 10Gi
+    # -- Storage class to be used.
+    # If defined, storageClassName: <storageClass>.
+    # If set to "-", storageClassName: "", which disables dynamic provisioning.
+    # If empty or set to null, no storageClassName spec is
+    # set, choosing the default provisioner (gp2 on AWS, standard on GKE, AWS, and OpenStack).
+    storageClass: openebs-hostpath
+    # -- Selector for persistent disk
+    selector: null
+  
+read:
+  replicas: 3
+
+  persistence:
+    enableStatefulSetAutoDeletePVC: true
+    size: 10Gi
+    storageClass: openebs-hostpath
+    selector: null
+
+backend:
+  replicas: 3
+
+  persistence:
+    volumeClaimsEnabled: true
+    dataVolumeParameters:
+      emptyDir: {}
+    enableStatefulSetAutoDeletePVC: true
+    size: 10Gi
+    storageClass: openebs-hostpath
+    selector: null
