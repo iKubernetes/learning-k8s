@@ -21,7 +21,7 @@ kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/mast
 运行如下命令，即可部署基础的OpenEBS 3.10版本的系统，支持基于hostpath的local pv，默认部署在openebs名称空间。
 
 ```bash
-kuectl apply -f https://openebs-archive.github.io/charts/openebs-operator.yaml
+kuectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
 ```
 
 #### 部署3.0版本（第2种部署方式）
@@ -75,9 +75,25 @@ spec:
       storage: 5G
 ```
 
-### 测试使用Jiva PV
 
-创建JivaVolumePolicy，而后创建Jiva相关的StorageClass，即可从该StorageClass中请求创建PVC。
+
+## 部署和测试使用Jiva PV
+
+以下操作，仅适用于3.x版本的OpenEBS。
+
+### 部署Jiva Operator
+
+部署Jiva Operator。
+
+```bash
+kubectl apply -f https://openebs.github.io/charts/jiva-operator.yaml
+```
+
+查看相关的Pod的创建状态。
+
+```bash
+kubectl get pods -n openebs -l name=jiva-operator
+```
 
 > 提示：如需要用到Jiva数据引擎，则需要事先在每个节点上部署iSCSI client。Ubuntu系统的安装命令如下。
 >
@@ -86,6 +102,22 @@ spec:
 > sudo apt-get install open-iscsi
 > sudo systemctl enable --now iscsid
 > ```
+
+### 测试使用Jiva PV
+
+创建JivaVolumePolicy，而后创建Jiva相关的StorageClass，即可从该StorageClass中请求创建PVC。
+
+## 部署和测试使用LVM PV
+
+以下操作，仅适用于3.x版本的OpenEBS。
+
+### 部署LVM Opertor
+
+```bash
+kubectl apply -f https://openebs.github.io/charts/lvm-operator.yaml
+```
+
+
 
 ### 测试使用Local PV using LVM
 
@@ -142,7 +174,7 @@ reclaimPolicy: Retain
 OpenEBS Dynamic NFS Provider能够为OpenEBS的多种数据引擎上的卷添加支持多路读写（RWX）的功能，但相关的组件需要单独部署。
 
 ```bash
-kubectl apply -f https://openebs-archive.github.io/charts/nfs-operator.yaml
+kubectl apply -f https://openebs.github.io/charts/nfs-operator.yaml
 ```
 
 ### 测试使用NFS PV
