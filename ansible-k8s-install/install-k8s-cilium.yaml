@@ -21,7 +21,7 @@
 
 - hosts: master
   vars:
-    k8s_version: "v1.29.4"
+    k8s_version: "v1.30.0"
     # stable controlPlaneEndpoint address for ha masters
     control_plane_endpoint: ""
     pod_cidr: "10.244.0.0/16"

@@ -1,8 +1,8 @@
 - hosts: all
   become: true
   vars:
-    kube_version: "v1.29"
-    kube_release: "1.29.4-1.1"
+    kube_version: "v1.30"
+    kube_release: "1.30.0-1.1"
   tasks:
   - name: Install packages that allow apt to be used over HTTPS
     apt:
