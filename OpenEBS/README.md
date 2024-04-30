@@ -4,7 +4,11 @@ OpenEBS是CAS存储机制的著名实现之一，由CNCF孵化。
 
 ## 部署OpenEBS
 
-### 部署4.0版本
+### 部署
+
+以下三种部署选择其中之一即可。
+
+#### 部署4.0版本
 
 运行如下命令，即可部署基础的OpenEBS 4.0的系统，支持基于hostpath和lvm的local pv，默认部署在openebs名称空间。
 
@@ -12,9 +16,15 @@ OpenEBS是CAS存储机制的著名实现之一，由CNCF孵化。
 kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/OpenEBS/deployment/openebs-localpv-lvm-4.0.yaml
 ```
 
-### 部署3.0版本
+#### 部署3.0版本
 
 运行如下命令，即可部署基础的OpenEBS 3.10版本的系统，支持基于hostpath的local pv，默认部署在openebs名称空间。
+
+```bash
+kuectl apply -f https://openebs-archive.github.io/charts/openebs-operator.yaml
+```
+
+#### 部署3.0版本（第2种部署方式）
 
 ```bash 
 kubectl apply -f https://raw.githubusercontent.com/openebs/openebs/v3.10.0/k8s/openebs-operator.yaml
@@ -132,7 +142,7 @@ reclaimPolicy: Retain
 OpenEBS Dynamic NFS Provider能够为OpenEBS的多种数据引擎上的卷添加支持多路读写（RWX）的功能，但相关的组件需要单独部署。
 
 ```bash
-kubectl apply -f https://openebs.github.io/charts/nfs-operator.yaml
+kubectl apply -f https://openebs-archive.github.io/charts/nfs-operator.yaml
 ```
 
 ### 测试使用NFS PV
