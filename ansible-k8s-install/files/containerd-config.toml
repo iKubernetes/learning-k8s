@@ -168,9 +168,9 @@ version = 2
 
       [plugins."io.containerd.grpc.v1.cri".registry.headers]
 
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
-          endpoint = ["https://docker.mirrors.ustc.edu.cn", "https://registry.docker-cn.com"]
+      #[plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+      #  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+      #    endpoint = ["https://docker.mirrors.ustc.edu.cn", "https://registry.docker-cn.com"]
 
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.k8s.io"]
           endpoint = ["https://registry.aliyuncs.com/google_containers"]
