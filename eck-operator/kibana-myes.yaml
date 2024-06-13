@@ -4,7 +4,7 @@ metadata:
   name: kibana
   namespace: elastic-system
 spec:
-  version: 8.11.3
+  version: 8.14.0
   count: 1
   elasticsearchRef:
     name: "myes"
