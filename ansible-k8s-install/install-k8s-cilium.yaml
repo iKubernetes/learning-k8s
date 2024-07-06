@@ -21,7 +21,7 @@
 
 - hosts: master
   vars:
-    k8s_version: "v1.30.1"
+    k8s_version: "v1.30.2"
     # stable controlPlaneEndpoint address for ha masters
     control_plane_endpoint: ""
     pod_cidr: "10.244.0.0/16"
@@ -42,8 +42,8 @@
     hubble_relay: "true"
     hubble_prometheus: "true"
     image_repo: "registry.aliyuncs.com/google_containers"
-    cilium_cli_version: "v0.16.4"
-    cilium_version: "v1.15.4"
+    cilium_cli_version: "v0.16.11"
+    cilium_version: "v1.15.6"
     download_cilium_cli: 'yes'
 
   tasks:
