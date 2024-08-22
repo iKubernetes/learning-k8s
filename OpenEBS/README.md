@@ -1,22 +1,20 @@
 # OpenEBS存储
 
-OpenEBS是CAS存储机制的著名实现之一，由CNCF孵化。
+OpenEBS是CAS存储机制的著名开源实现之一，由CNCF孵化。OpenEBS目前主要维护有4.x和3.x两个主版本，4.x版本几乎是完全重构的实现，同3.x系列差别巨大，因此，OpenEBS项目业已将3.x系列称为“Legacy”版本。读者可根据需要自行选择部署特定的版本。
+
+> 4.x系列版本相关的helm repo及部署说明：https://openebs.github.io/openebs/
 
 ## 部署OpenEBS
 
-### 部署
+### 部署v4.1版本的OpenEBS
 
-以下三种部署选择其中之一即可。
-
-#### 部署4.0版本
-
-运行如下命令，即可部署基础的OpenEBS 4.0的系统，支持基于hostpath和lvm的local pv，默认部署在openebs名称空间。
+运行如下命令，即可部署基础的OpenEBS 4.1版本的存储系统，它支持基于hostpath和lvm的local pv，默认部署在openebs名称空间。
 
 ```bash 
-kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/OpenEBS/deployment/openebs-localpv-lvm-4.0.yaml
+kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/OpenEBS/deployment/openebs-localpv-lvm-4.1.yaml
 ```
 
-#### 部署3.0版本
+### 部署3.10版本
 
 运行如下命令，即可部署基础的OpenEBS 3.10版本的系统，支持基于hostpath的local pv，默认部署在openebs名称空间。
 
@@ -24,7 +22,7 @@ kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/mast
 kuectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
 ```
 
-#### 部署3.0版本（第2种部署方式）
+### 部署3.10版本（第2种部署方式）
 
 ```bash 
 kubectl apply -f https://raw.githubusercontent.com/openebs/openebs/v3.10.0/k8s/openebs-operator.yaml
@@ -109,15 +107,13 @@ kubectl get pods -n openebs -l name=jiva-operator
 
 ## 部署和测试使用LVM PV
 
-以下操作，仅适用于3.x版本的OpenEBS。
-
 ### 部署LVM Opertor
+
+仅3.x版本的OpenEBS需要执行该步骤。
 
 ```bash
 kubectl apply -f https://openebs.github.io/charts/lvm-operator.yaml
 ```
-
-
 
 ### 测试使用Local PV using LVM
 
@@ -171,6 +167,8 @@ reclaimPolicy: Retain
 
 ## 部署OpenEBS Dynamic NFS Provider
 
+> 说明：本小节仅适用于3.x系列的OpenEBS。
+
 OpenEBS Dynamic NFS Provider能够为OpenEBS的多种数据引擎上的卷添加支持多路读写（RWX）的功能，但相关的组件需要单独部署。
 
 ```bash
@@ -180,6 +178,40 @@ kubectl apply -f https://openebs.github.io/charts/nfs-operator.yaml
 ### 测试使用NFS PV
 
 创建NFS PV相关的使用StorageClass，即可从该StorageClass中请求创建PVC。
+
+
+
+## Helm方式部署
+
+若要部署4.x系列的OpenEBS，也可基于如下命令，快速进行部署。
+
+首先，设置Helm仓库。
+
+```bash
+helm repo add openebs https://openebs.github.io/openebs
+helm repo update
+```
+
+而后，运行如下命令，即可完成部署。
+
+```bash
+helm install openebs --namespace openebs openebs/openebs --create-namespace
+```
+
+若用不到MayaStor，可改用如下命令进行部署。
+
+```bash
+helm install openebs --namespace openebs openebs/openebs --set engines.replicated.mayastor.enabled=false --create-namespace
+```
+
+若用不到MayaStor和zfs localpv，可改用如下命令进行部署。
+
+```bash
+helm install openebs --namespace openebs openebs/openebs --set engines.replicated.mayastor.enabled=false \
+            --set engines.local.zfs.enabled=false --create-namespace
+```
+
+
 
 ## 版权声明
 
