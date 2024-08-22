@@ -6,19 +6,17 @@
 helm repo add harbor https://helm.goharbor.io
 ```
 
-而后，创建用于部署Harbor的名称空间，例如harbor。
+而后，运行如下命令，基于该仓库中的值文件“harbor-values.yaml”即可部署Harbor。它默认依赖于“nfs-csi”存储类。
 
 ```bash
-kubeclt create namespace harbor
+helm install harbor -f harbor-values.yaml harbor/harbor -n harbor --create-namespace
 ```
 
-最后，运行如下命令，基于该仓库中的值文件“harbor-values.yaml”即可部署Harbor。
+若需要基于“openebs-hostpath”存储类进行部署，则可以改用如下命令进行部署。
 
 ```bash
-helm install harbor -f harbor-values.yaml harbor/harbor -n harbor
+helm install harbor -f harbor-values-openebs.yaml harbor/harbor -n harbor --create-namespace
 ```
-
-
 
 ### 版权声明
 
