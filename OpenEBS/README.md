@@ -19,7 +19,7 @@ kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/mast
 运行如下命令，即可部署基础的OpenEBS 3.10版本的系统，支持基于hostpath的local pv，默认部署在openebs名称空间。
 
 ```bash
-kuectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
+kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
 ```
 
 ### 部署3.10版本（第2种部署方式）
