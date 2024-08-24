@@ -1,0 +1,209 @@
+# 部署Kubernetes集群
+
+本示例用于快速拉起一个学习用的Kubernetes集群环境。
+
+### 1. 部署kubeadm等程序包
+
+首次部署Kubernetes集群时，需要先编辑[脚本文件](cluster-install.sh)，配置指定Master节点的IP地址，以及各工作节点的IP地址匹配实际环境。
+
+```
+MASTER_IP='192.168.10.6'
+NODE_01_IP='192.168.10.11'
+NODE_02_IP='192.168.10.12'
+NODE_03_IP='192.168.10.13'
+```
+
+> 提示：若工作节点数量不为三个，还需要按需修改如下用于生成ansibles inventory hosts文件的内容。
+>
+> ```
+> MASTER_IP='192.168.10.6'
+> NODE_01_IP='192.168.10.11'
+> NODE_02_IP='192.168.10.12'
+> NODE_03_IP='192.168.10.13'
+> ```
+
+若此前已经完成过该步骤，则无须重复执行。
+
+### 2. 初始化集群
+
+本示例分别为使用flannel、calico和cilium网络插件准备了专用的ansible playbook，用户需要根据要选用的插件，执行如下对应的一个小节即可。
+
+#### (1) Flannel
+
+flannel支持vxlan、vxlan with directrouting和host-gw等三种后端，其配置参数如下，相关内容位于[该文件](install-k8s-flannel.yaml)中。
+
+```yaml
+- hosts: master
+  vars:
+    # Kubernetes集群的版本，要与部署的kubeadm程序包的版本保持一致
+    k8s_version: "v1.31.0"
+    # 要使用的子网，flannel默认使用“10.244.0.0/16”
+    pod_cidr: "10.244.0.0/16"
+    # 要使用的service子网，kubeadm默认使用“10.96.0.0/12”
+    service_cidr: "10.96.0.0/12"
+    # mode，支持routing和tunneling两种
+    mode: "tunneling"
+    # 隧道协议，这里仅支持vxlan
+    tunnel_protocol: "vxlan"
+    # 是否在vxlan上使用的directrouting    
+    vxlan_directrouting: "false"
+    # 下载Image的mirror站点，默认为registry.k8s.io
+    image_repo: "registry.aliyuncs.com/google_containers"
+```
+
+配置完成后，运行如下命令，即可完成部署。
+
+```bash
+ansible-playbook install-k8s-flannel.yaml
+```
+
+#### (2) Calico
+
+calico支持vxlan和ipip隧道模式，以及同bgp路由学习的Underlay网络路由模式。本示例中的配置，支持如下三种选择。
+
+- vxlan：设置mode为“tunneling”，同时tunnel_protocol为“VXLAN”
+- ipip：设置mode为“tunneling”，同时tunnel_protocol为“IPIP”
+- ipip和bgp混合：设置mode为“routing”，同时tunnel_protocol为“IPIP”
+
+其配置参数如下，相关内容位于[该文件](install-k8s-calico.yaml)中。
+
+```yaml
+- hosts: master
+  vars:
+    k8s_version: "v1.31.0"
+    pod_cidr: "10.244.0.0/16"
+    pod_cidr_block_size: "24"
+    service_cidr: "10.96.0.0/12"
+    # mode: routing, tunneling
+    mode: "tunneling"
+    # tunnel protocol: IPIP, VXLAN
+    tunnel_protocol: "IPIP"
+    image_repo: "registry.aliyuncs.com/google_containers"
+```
+
+配置完成后，运行如下命令，即可完成部署。
+
+```bash
+ansible-playbook install-k8s-calico.yaml
+```
+
+#### (3) Cilium
+
+Cilium支持vxlan和geneve隧道模式，以及同bgp路由学习的Underlay网络路由模式。默认使用vxlan隧道模式。
+
+```yaml
+- hosts: master
+  vars:
+    k8s_version: "v1.31.0"
+    # stable controlPlaneEndpoint address for ha masters
+    control_plane_endpoint: ""
+    pod_cidr: "10.244.0.0/16"
+    service_cidr: "10.96.0.0/12"
+    cluster_name: "cluster01"
+    cluster_id: "1"
+    # 完全弃用kube proxy
+    kubeproxyfree: "strict"
+    # 是否启用内置的ingress controller
+    ingress_controller_enabled: "true" 
+    # ingress_controller_mode: dedicated, shared
+    ingress_controller_mode: "shared"
+    # modes: tunneling, directrouting
+    mode: "tunneling"
+    #encryption: no, ipsec, wireguard
+    encryption: "no"
+    host_routing: "legacy"
+    # 是否启用hubble
+    hubble: "true"
+    # 是否启用hubble-ui
+    hubble_ui: "true"
+    hubble_relay: "true"
+    hubble_prometheus: "true"
+    image_repo: "registry.aliyuncs.com/google_containers"
+    # cilium cli 版本
+    cilium_cli_version: "v0.16.11"
+    # cilium 版本
+    cilium_version: "v1.15.6"
+    download_cilium_cli: 'yes'
+
+```
+
+配置完成后，运行如下命令，即可完成部署。
+
+```bash
+ansible-playbook install-k8s-cilium.yaml
+```
+
+### 3. 重新启动集群
+
+部署完成后，需要重新启动集群节点，以完成初始化。
+
+```bash
+ansible-playbook reboot-system.yaml
+```
+
+重新启动完成后，确认所有节点进入“Ready”状态，集群即初步部署完成。
+
+```bash
+~$ kubectl get nodes
+NAME                      STATUS   ROLES           AGE   VERSION
+k8s-master01.magedu.com   Ready    control-plane   66s   v1.31.0
+k8s-node01.magedu.com     Ready    <none>          66s   v1.31.0
+k8s-node02.magedu.com     Ready    <none>          66s   v1.31.0
+k8s-node03.magedu.com     Ready    <none>          66s   v1.31.0
+```
+
+### 4. 部署必要的附件
+
+#### (1) MetalLB
+
+部署MetalLB，为LoadBalancer类型的Service提供本地实现。部署文档在[这里](https://metallb.universe.tf/installation/)。待MetalLB的所有Pod就绪后，需要首先创建地址池，本示例默认使用的地址池如下。
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: localip-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  # 需要将如下地址池段修改为适配节点环境的可用IP地址空间
+  - 172.29.7.51-172.29.7.80
+  autoAssign: true
+  avoidBuggyIPs: true
+
+```
+
+另外，还需要设定用于通报地池解析结果变更信息的网络接口。
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: localip-pool-l2a
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - localip-pool
+  interfaces:
+  # 修改为节点用于集群内部通信的接口名称
+  - enp1s0
+```
+
+运行如下命令，即可创建地址池。
+
+```bash
+cd learning-k8s/
+kubectl apply -f MetalLB/
+```
+
+#### (2) Ingress Nginx
+
+Ingress Nginx是由Kubernetes社区维护的Ingress Controller的实现，其部署文档在[这里](https://kubernetes.github.io/ingress-nginx/deploy/)。部署完成后，待所有Pod转为就绪状态，随后即可基于Ingress发布服务至集群外部。
+
+#### (3) OpenEBS
+
+OpenEBS是面向Kubernetes的开源存储系统，CAS风格。其部署文档在[这里](https://openebs.io/docs/quickstart-guide/installation)，也可参考这里的[文档](../OpenEBS/)进行部署。
+
+#### (4) Prometheus指标系统
+
+Prometheus和Prometheus Adpater可用于为Kubernetes提供指标系统，具体的部署方式可参考这里的[文档](https://github.com/iKubernetes/k8s-prom/tree/master/helm)进行部署。
