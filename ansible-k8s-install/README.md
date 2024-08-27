@@ -131,6 +131,18 @@ kubectl apply -f MetalLB/
 
 Ingress Nginx是由Kubernetes社区维护的Ingress Controller的实现，其部署文档在[这里](https://kubernetes.github.io/ingress-nginx/deploy/)。部署完成后，待所有Pod转为就绪状态，随后即可基于Ingress发布服务至集群外部。
 
+或者也可以使用用下的helm命令进行部署，且启用内置的Metrics。
+
+```bash
+helm install ingress-nginx ingress-nginx \
+    --repo https://kubernetes.github.io/ingress-nginx \
+    --namespace ingress-nginx \
+    --set controller.metrics.enabled=true \
+    --set-string controller.podAnnotations."prometheus\.io/scrape"="true" \
+    --set-string controller.podAnnotations."prometheus\.io/port"="10254" \
+    --create-namespace
+```
+
 #### (3) OpenEBS
 
 OpenEBS是面向Kubernetes的开源存储系统，CAS风格。其部署文档在[这里](https://openebs.io/docs/quickstart-guide/installation)，也可参考这里的[文档](../OpenEBS/)进行部署。
