@@ -1,6 +1,8 @@
-# 部署Kubernetes集群
+# Kubernetes集群初始化
 
 本示例用于快速拉起一个学习用的Kubernetes集群环境。
+
+## 部署Kubernetes集群
 
 ### 1. 部署kubeadm等程序包
 
@@ -150,6 +152,20 @@ OpenEBS是面向Kubernetes的开源存储系统，CAS风格。其部署文档在
 #### (4) Prometheus指标系统
 
 Prometheus和Prometheus Adpater可用于为Kubernetes提供指标系统，具体的部署方式可参考这里的[文档](https://github.com/iKubernetes/k8s-prom/tree/master/helm)进行部署。
+
+目前，Prometheus Adapter v0.12版本，可为Kubernetes提供核心指标API（metrics.k8s.io）和自定义指标API（custom.metrics.k8s.io），因此，它可直接替代Metrics Server的作用。
+
+#### (5) Kuboard集群面板
+
+Kuboard是Kubernetes的知名Dashboard项目，部署方式可参考这里的[文档](https://github.com/iKubernetes/learning-k8s/tree/master/Kuboard)进行部署。
+
+
+
+## 关于Containerd的配置
+
+> 重要提示：**registry.mirrors**和**registry.configs**配置段将在containerd v2中弃用，其配置要修改为类似如下描述的配置格式。
+
+具体的说明，在[这里](https://github.com/containerd/containerd/blob/main/docs/cri/registry.md)。
 
 
 
