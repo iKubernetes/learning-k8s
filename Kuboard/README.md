@@ -13,7 +13,7 @@ Kuboard是一款免费的Kubernetes管理工具，提供了丰富的功能，结
 运行下面的命令，使用本示例中提供的资源配置文件，将Kuboard以单实例形式部署到Kubernetes集群上。
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/Kuboard/kuboard-ephemeral/deploy.yaml
+kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/Kuboard/kuboard-ephemeral/kuboard-v3.yaml
 ```
 
 而后，运行如下命令，查看Kuboard Pod的相关状态。
@@ -36,7 +36,7 @@ kuboard-v3-795d76b98f-b8zxs   1/1     Running   0          2m
 运行下面的命令，使用本示例中提供的资源配置文件，将Kuboard以单实例形式部署到Kubernetes集群上。它依赖于事先部署可用的OpenEBS存储。
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/Kuboard/kuboard-persistent/deploy.yaml
+kubectl apply -f https://raw.githubusercontent.com/iKubernetes/learning-k8s/master/Kuboard/kuboard-persistent/kuboard-v3.yaml
 ```
 
 而后，运行如下命令，查看Kuboard Pod的相关状态。
