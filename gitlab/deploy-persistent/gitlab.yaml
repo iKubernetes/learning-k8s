@@ -1,96 +1,44 @@
 ---
-## Service
-kind: Service
-apiVersion: v1
-metadata:
-  name: code
-  namespace: gitlab
-spec:
-  type: LoadBalancer
-  ports:
-    - name: http
-      protocol: TCP
-      port: 80
-      targetPort: 80
-    - name: ssh
-      protocol: TCP
-      port: 22
-      targetPort: 22
-  selector:
-    app: gitlab
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gitlab
-  namespace: gitlab
-  labels:
-    name: gitlab
-spec:
-  ports:
-    - name: http
-      port: 80
-      targetPort: http
-    - name: ssh
-      port: 22
-      targetPort: ssh
-  selector:
-    app: gitlab
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gitlab
-  namespace: gitlab
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gitlab
+      name: gitlab
   template:
     metadata:
       name: gitlab
       labels:
-        app: gitlab
+        name: gitlab
     spec:
       containers:
       - name: gitlab
-        image: sameersbn/gitlab:15.6.8
+        image: sameersbn/gitlab:17.3.1
         env:
         - name: TZ
           value: Asia/Shanghai
         - name: GITLAB_TIMEZONE
-          value: Asia/Shanghai
+          value: Beijing
 
         - name: GITLAB_SECRETS_DB_KEY_BASE
-          # Be used to encrypt CI secret variables, as well as import credentials, in the database.
-          valueFrom:
-            secretKeyRef:
-              name: gitlab
-              key: gitlab_secrets_db_key_base
+          value: long-and-random-alpha-numeric-string
         - name: GITLAB_SECRETS_SECRET_KEY_BASE
-          # Be used for password reset links, and other 'standard' auth features.
-          valueFrom:
-            secretKeyRef:
-              name: gitlab
-              key: gitlab_secrets_secret_key_base
+          value: long-and-random-alpha-numeric-string
         - name: GITLAB_SECRETS_OTP_KEY_BASE
-          # Be used to encrypt 2FA secrets in the database. "long-and-random-alpha-numeric-string"
-          valueFrom:
-            secretKeyRef:
-              name: gitlab
-              key: gitlab_secrets_otp_key_base
+          value: long-and-random-alpha-numeric-string
+        - name: GITLAB_SECRETS_ENCRYPTED_SETTINGS_KEY_BASE
+          value: long-and-random-alpha-numeric-string
 
         - name: GITLAB_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: gitlab
-              key: gitlab_root_pass
-        - name: GITLAB_ROOT_EMAIL 
-          value: mage@magedu.com
+          value:
+        - name: GITLAB_ROOT_EMAIL
+          value:
 
         - name: GITLAB_HOST
-          value: gitlab.gitlab.svc.cluster.local
+          value: git.default.svc.cluster.local
         - name: GITLAB_PORT
           value: "80"
         - name: GITLAB_SSH_PORT
@@ -112,18 +60,21 @@ spec:
           value: postgresql
         - name: DB_PORT
           value: "5432"
-        - name: DB_USER        
+        - name: DB_USER
           valueFrom:
             secretKeyRef:
               name: gitlab
               key: db_user
-        - name: DB_PASS         
+        - name: DB_PASS
           valueFrom:
             secretKeyRef:
               name: gitlab
               key: db_pass
         - name: DB_NAME
-          value: gitlab_production
+          valueFrom:
+            secretKeyRef:
+              name: gitlab
+              key: db_name          
 
         - name: REDIS_HOST
           value: redis
@@ -133,15 +84,21 @@ spec:
         - name: SMTP_ENABLED
           value: "false"
         - name: SMTP_DOMAIN
-          value: magedu.com
+          value: www.magedu.com
         - name: SMTP_HOST
-          value: smtp.gmail.com
+          value: smtp.magedu.com
         - name: SMTP_PORT
           value: "587"
         - name: SMTP_USER
-          value: mailer@magedu.com
+          valueFrom:
+            secretKeyRef:
+              name: gitlab
+              key: smtp_user
         - name: SMTP_PASS
-          value: password
+          valueFrom:
+            secretKeyRef:
+              name: gitlab
+              key: smtp_pass
         - name: SMTP_STARTTLS
           value: "true"
         - name: SMTP_AUTHENTICATION
@@ -150,13 +107,19 @@ spec:
         - name: IMAP_ENABLED
           value: "false"
         - name: IMAP_HOST
-          value: imap.gmail.com
+          value: imap.magedu.com
         - name: IMAP_PORT
           value: "993"
         - name: IMAP_USER
-          value: mailer@magedu.com
+          valueFrom:
+            secretKeyRef:
+              name: gitlab
+              key: imap_user
         - name: IMAP_PASS
-          value: password
+          valueFrom:
+            secretKeyRef:
+              name: gitlab
+              key: imap_pass
         - name: IMAP_SSL
           value: "true"
         - name: IMAP_STARTTLS
@@ -185,3 +148,39 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: gitlab-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  labels:
+    name: gitlab
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+    - name: ssh
+      port: 22
+      targetPort: ssh
+  selector:
+    name: gitlab
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitlab
+spec:
+  ingressClassName: 'nginx'
+  rules:
+  - host: gitlab.magedu.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gitlab
+            port:
+              number: 80
