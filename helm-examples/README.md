@@ -28,10 +28,13 @@ Release管理：每次安装或升级生成一个 Release 实例，其状态（�
 
 ### 应用部署示例
 
+#### Ingress Nginx
+
 部署Ingress Nginx，并启用内置的Metrics。
 
 ```bash
 helm upgrade ingress-nginx ingress-nginx \
+	--install \
 	--repo https://kubernetes.github.io/ingress-nginx \
 	--namespace ingress-nginx \
 	--set controller.metrics.enabled=true \
@@ -39,10 +42,19 @@ helm upgrade ingress-nginx ingress-nginx \
 	--set-string controller.podAnnotations."prometheus\.io/port"="10254"
 ```
 
+待ingress-nginx相关的Pod就绪后，可以向其metrics service（默认名称为ingress-nginx-controller-metrics）的10254端口发起访问请求进行指标获取的简单测试。
+
+```bash
+METRICS_SVC_IP=$(kubectl get svc/ingress-nginx-controller-metrics -n ingress-nginx -o jsonpath={.spec.clusterIP})
+curl http://${METRICS_SVC_IP}:10254/metrics
+```
+
+#### OpenEBS
+
 部署OpenEBS，并禁用了本地的zfs和lvm存储引擎，以及复制引擎Mayastor。
 
 ```bash
-helm install openebs --namespace openebs openebs/openebs --set engines.replicated.mayastor.enabled=false \
+helm upgrade openebs --install --namespace openebs openebs/openebs --set engines.replicated.mayastor.enabled=false \
             --set engines.local.zfs.enabled=false --set engines.local.lvm.enabled=false --create-namespace
 ```
 
