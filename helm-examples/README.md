@@ -22,7 +22,9 @@ Helm 被广泛类比为 Kubernetes 的 "包管理器"，类似于 Linux 系统�
 Chart处理流程：
 
 - **模板渲染**：将 Chart 中的模板文件（如deployment.yaml.tpl）与用户提供的 values.yaml 合并，生成标准的Kubernetes资源配置文件。
-  **与 Kubernetes API 交互**：Helm CLI直接通过kubeconfig连接 Kubernetes API Server，提交渲染后的资源文件完成部署（Helm 3移除了服务端组件Tiller，简化了架构并提升安全性）。
+- **与 Kubernetes API 交互**：Helm CLI直接通过kubeconfig连接 Kubernetes API Server，提交渲染后的资源文件完成部署（Helm 3移除了服务端组件Tiller，简化了架构并提升安全性）。
+
+Release管理：每次安装或升级生成一个 Release 实例，其状态（如配置、版本号）存储在 Kubernetes 的 Secret 或 ConfigMap 中，便于历史记录查询和回滚。
 
 ### 应用部署示例
 
