@@ -7,7 +7,8 @@ metadata:
     ingress.cilium.io/loadbalancer-mode: 'shared'
     ingress.cilium.io/service-type: 'Loadbalancer'
 spec:
-  ingressClassName: cilium
+  #ingressClassName: cilium
+  ingressClassName: nginx
   rules:
   - host: nacos.magedu.com
     http:
