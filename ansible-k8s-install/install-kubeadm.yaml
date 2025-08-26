@@ -2,7 +2,7 @@
   become: true
   vars:
     kube_version: "v1.32"
-    kube_release: "1.32.3-1.1"
+    kube_release: "1.32.8-1.1"
   tasks:
   - name: Install packages that allow apt to be used over HTTPS
     apt:
