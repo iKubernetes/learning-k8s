@@ -10,7 +10,7 @@ spec:
     image: ikubernetes/admin-box:v1.2
     command: ["sleep", "999999"]
   - name: ambassador
-    image: bitnami/kubectl:latest
+    image: soldevelo/kubectl:latest
     command: ["/bin/sh","-c","kubectl proxy"]
     args:    
     # 传递给 kubectl proxy 的选项，若需要改变默认监听的tcp/8001端口，可以额外附加“--port=NUM”选项；
